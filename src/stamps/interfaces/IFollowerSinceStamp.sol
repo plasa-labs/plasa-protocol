@@ -20,19 +20,22 @@ interface IFollowerSinceStamp is IStamp {
 	/// @notice The identifier of the followed account on the platform
 	function FOLLOWED() external view returns (string memory);
 
+	/// @notice Mapping to store the "since" timestamp for each follower
+	function followerSince(address follower) external view returns (uint256);
+
 	/// @notice Mints a new follower since stamp
 	/// @dev This function should verify the signature and mint a new stamp
 	/// @param follower The identifier of the follower on the platform
 	/// @param since The timestamp since when the user has been following
 	/// @param deadline The timestamp after which the signature is no longer valid
-	/// @param signature The signature authorizing the minting, likely signed by a trusted authority
-	/// @return The ID of the newly minted stamp
+	/// @param signature The signature authorizing the minting, signed by a trusted authority
+	/// @return stampId The ID of the newly minted stamp
 	function mintStamp(
 		string calldata follower,
 		uint256 since,
 		uint256 deadline,
 		bytes calldata signature
-	) external returns (uint256);
+	) external returns (uint256 stampId);
 
 	/// @notice Emitted when a new follower since stamp is minted
 	/// @param platform The platform identifier

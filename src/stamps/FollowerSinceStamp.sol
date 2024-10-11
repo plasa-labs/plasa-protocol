@@ -16,6 +16,9 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	/// @inheritdoc IFollowerSinceStamp
 	string public override FOLLOWED;
 
+	/// @notice Mapping to store the "since" timestamp for each follower
+	mapping(address => uint256) public followerSince;
+
 	/// @notice Initializes the FollowerSinceStamp contract
 	/// @param _signer The address authorized to sign mint requests
 	/// @param _platform The platform where the following relationship exists
@@ -51,6 +54,9 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		);
 
 		uint256 tokenId = _mintStamp(msg.sender, encodedData, signature, deadline);
+
+		// Store the "since" timestamp for the follower
+		followerSince[msg.sender] = since;
 
 		emit FollowerSince(PLATFORM, FOLLOWED, follower, since, tokenId, msg.sender);
 

@@ -6,6 +6,8 @@ import "./interfaces/IAccountOwnershipStamp.sol";
 
 contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
     string public override PLATFORM;
+    mapping(string username => uint256 stampId) private _usedUsernames;
+    mapping(uint256 stampId => string username) private _tokenUsernames;
 
     constructor(
         address _signer,
@@ -15,20 +17,38 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
     }
 
     function mintStamp(
-        string calldata id,
+        string calldata username,
         uint256 deadline,
         bytes calldata signature
     ) external returns (uint256) {
         if (msg.sender == address(0)) revert InvalidRecipient();
+        if (_usedUsernames[username] != 0)
+            revert UsernameAlreadyRegistered(
+                username,
+                _usedUsernames[username],
+                msg.sender
+            );
 
         bytes memory encodedData = abi.encode(
             PLATFORM,
-            id,
+            username,
             msg.sender,
             deadline
         );
 
-        return _mintStamp(msg.sender, encodedData, signature, deadline);
+        uint256 tokenId = _mintStamp(
+            msg.sender,
+            encodedData,
+            signature,
+            deadline
+        );
+
+        _usedUsernames[username] = tokenId;
+        _tokenUsernames[tokenId] = username;
+
+        emit AccountOwner(PLATFORM, username, tokenId, msg.sender);
+
+        return tokenId;
     }
 
     function getTypedDataHash(
@@ -53,5 +73,9 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
                     deadline
                 )
             );
+    }
+
+    function getTokenId(uint256 tokenId) external view returns (string memory) {
+        return _tokenUsernames[tokenId];
     }
 }

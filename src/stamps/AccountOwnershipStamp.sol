@@ -2,11 +2,10 @@
 pragma solidity ^0.8.20;
 
 import "./Stamp.sol";
+import "./interfaces/IAccountOwnershipStamp.sol";
 
-contract AccountOwnershipStamp is Stamp {
-    string public PLATFORM;
-
-    error InvalidRecipient();
+contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
+    string public override PLATFORM;
 
     constructor(
         address _signer,

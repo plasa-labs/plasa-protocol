@@ -61,11 +61,4 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
             signer ==
             _hashTypedDataV4(getTypedDataHash(data)).recover(signature);
     }
-
-    // Override required by Solidity
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(ERC721Enumerable, IERC165) returns (bool) {
-        return super.supportsInterface(interfaceId);
-    }
 }

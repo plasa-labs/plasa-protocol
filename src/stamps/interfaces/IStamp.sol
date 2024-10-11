@@ -13,9 +13,5 @@ interface IStamp is IERC721Enumerable {
     function signer() external view returns (address);
 
     // Public functions
-    function getTypedDataHash(
-        bytes memory data
-    ) external view returns (bytes32);
-
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
 }

@@ -24,7 +24,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
     // Abstract function to be implemented by child contracts
     function getTypedDataHash(
         bytes memory data
-    ) public view virtual returns (bytes32);
+    ) internal view virtual returns (bytes32);
 
     // Modified internal minting function
     function _mintStamp(

@@ -42,7 +42,7 @@ contract FollowerSinceStamp is Stamp {
 
     function getTypedDataHash(
         bytes memory data
-    ) public pure override returns (bytes32) {
+    ) internal pure override returns (bytes32) {
         (
             string memory platform,
             string memory followed,

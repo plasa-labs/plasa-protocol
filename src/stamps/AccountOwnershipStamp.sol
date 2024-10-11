@@ -5,7 +5,9 @@ import "./Stamp.sol";
 import "./interfaces/IAccountOwnershipStamp.sol";
 
 contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
+    /// @inheritdoc IAccountOwnershipStamp
     string public override PLATFORM;
+
     mapping(string username => uint256 stampId) private _usedUsernames;
     mapping(uint256 stampId => string username) private _tokenUsernames;
 
@@ -16,11 +18,12 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
         PLATFORM = _platform;
     }
 
+    /// @inheritdoc IAccountOwnershipStamp
     function mintStamp(
         string calldata username,
         uint256 deadline,
         bytes calldata signature
-    ) external returns (uint256) {
+    ) external override returns (uint256) {
         if (msg.sender == address(0)) revert InvalidRecipient();
         if (_usedUsernames[username] != 0)
             revert UsernameAlreadyRegistered(
@@ -51,6 +54,7 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
         return tokenId;
     }
 
+    /// @inheritdoc Stamp
     function getTypedDataHash(
         bytes memory data
     ) internal pure override returns (bytes32) {
@@ -75,6 +79,9 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
             );
     }
 
+    /// @notice Retrieves the username associated with a token ID
+    /// @param tokenId The ID of the token
+    /// @return The username associated with the token ID
     function getTokenId(uint256 tokenId) external view returns (string memory) {
         return _tokenUsernames[tokenId];
     }

@@ -9,8 +9,8 @@ import "./interfaces/IStamp.sol";
 abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
     using ECDSA for bytes32;
 
-    // Signer address
-    address public immutable signer;
+    /// @inheritdoc IStamp
+    address public immutable override signer;
 
     constructor(
         string memory stampName,
@@ -21,19 +21,25 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
         signer = _signer;
     }
 
-    // Abstract function to be implemented by child contracts
+    /// @notice Computes the typed data hash for signature verification
+    /// @param data The encoded data to be hashed
+    /// @return The computed hash
     function getTypedDataHash(
         bytes memory data
     ) internal view virtual returns (bytes32);
 
-    // Modified internal minting function
+    /// @notice Internal function to mint a new stamp
+    /// @param to The address to mint the stamp to
+    /// @param data The encoded data for signature verification
+    /// @param signature The signature authorizing the minting
+    /// @param deadline The timestamp after which the signature is no longer valid
+    /// @return The ID of the newly minted stamp
     function _mintStamp(
         address to,
         bytes memory data,
         bytes calldata signature,
         uint256 deadline
     ) internal virtual returns (uint256) {
-        // Check if the deadline has passed
         if (block.timestamp > deadline) {
             revert DeadlineExpired(deadline, block.timestamp);
         }
@@ -52,7 +58,10 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
         return newStampId;
     }
 
-    // Signature verification
+    /// @notice Verifies the signature for minting authorization
+    /// @param data The encoded data to be verified
+    /// @param signature The signature to be verified
+    /// @return True if the signature is valid, false otherwise
     function _verifySignature(
         bytes memory data,
         bytes calldata signature

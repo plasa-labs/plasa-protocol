@@ -2,13 +2,14 @@
 pragma solidity ^0.8.20;
 
 import "./Stamp.sol";
+import "./interfaces/IFollowerSinceStamp.sol";
 
-contract FollowerSinceStamp is Stamp {
-    string public PLATFORM;
-    string public FOLLOWED;
+contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
+    /// @inheritdoc IFollowerSinceStamp
+    string public override PLATFORM;
 
-    error InvalidRecipient();
-    error InvalidFollower();
+    /// @inheritdoc IFollowerSinceStamp
+    string public override FOLLOWED;
 
     constructor(
         address _signer,
@@ -19,12 +20,13 @@ contract FollowerSinceStamp is Stamp {
         FOLLOWED = _followed;
     }
 
+    /// @inheritdoc IFollowerSinceStamp
     function mintStamp(
         string calldata follower,
         uint256 since,
         uint256 deadline,
         bytes calldata signature
-    ) external returns (uint256) {
+    ) external override returns (uint256) {
         if (msg.sender == address(0)) revert InvalidRecipient();
         if (bytes(follower).length == 0) revert InvalidFollower();
 
@@ -37,9 +39,26 @@ contract FollowerSinceStamp is Stamp {
             deadline
         );
 
-        return _mintStamp(msg.sender, encodedData, signature, deadline);
+        uint256 tokenId = _mintStamp(
+            msg.sender,
+            encodedData,
+            signature,
+            deadline
+        );
+
+        emit FollowerSince(
+            PLATFORM,
+            FOLLOWED,
+            follower,
+            since,
+            tokenId,
+            msg.sender
+        );
+
+        return tokenId;
     }
 
+    /// @inheritdoc Stamp
     function getTypedDataHash(
         bytes memory data
     ) internal pure override returns (bytes32) {

@@ -65,7 +65,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
     // Override required by Solidity
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC721Enumerable, IStamp) returns (bool) {
+    ) public view virtual override(ERC721Enumerable, IERC165) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

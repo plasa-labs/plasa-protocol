@@ -6,10 +6,12 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interfaces/IStamp.sol";
 
+/// @title Stamp
+/// @notice Abstract contract for non-transferable ERC721 tokens (stamps) with signature-based minting
 abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
     using ECDSA for bytes32;
 
-    /// @inheritdoc IStamp
+    /// @notice Address authorized to sign minting requests
     address public immutable override signer;
 
     constructor(
@@ -29,29 +31,29 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
     ) internal view virtual returns (bytes32);
 
     /// @notice Internal function to mint a new stamp
-    /// @param to The address to mint the stamp to
-    /// @param data The encoded data for signature verification
-    /// @param signature The signature authorizing the minting
-    /// @param deadline The timestamp after which the signature is no longer valid
-    /// @return The ID of the newly minted stamp
+    /// @dev Checks deadline, verifies signature, ensures one stamp per address, and mints
     function _mintStamp(
         address to,
         bytes memory data,
         bytes calldata signature,
         uint256 deadline
     ) internal virtual returns (uint256) {
+        // Check if the deadline has passed
         if (block.timestamp > deadline) {
             revert DeadlineExpired(deadline, block.timestamp);
         }
 
+        // Verify the signature
         if (!_verifySignature(data, signature)) {
             revert InvalidSignature();
         }
 
+        // Ensure the recipient doesn't already have a stamp
         if (balanceOf(to) > 0) {
             revert AlreadyMintedStamp(to, tokenOfOwnerByIndex(to, 0));
         }
 
+        // Mint the new stamp
         uint256 newStampId = totalSupply() + 1;
         _safeMint(to, newStampId);
 
@@ -59,9 +61,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
     }
 
     /// @notice Verifies the signature for minting authorization
-    /// @param data The encoded data to be verified
-    /// @param signature The signature to be verified
-    /// @return True if the signature is valid, false otherwise
+    /// @dev Uses EIP712 for structured data hashing and signature recovery
     function _verifySignature(
         bytes memory data,
         bytes calldata signature
@@ -69,5 +69,34 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
         return
             signer ==
             _hashTypedDataV4(getTypedDataHash(data)).recover(signature);
+    }
+
+    // ============================
+    // Overrides to Disable Transfers
+    // ============================
+
+    /// @dev Disable approvals
+    function _approve(address, uint256, address, bool) internal pure override {
+        revert NonTransferableStamp();
+    }
+
+    /// @dev Disable setting approval for all
+    function _setApprovalForAll(address, address, bool) internal pure override {
+        revert NonTransferableStamp();
+    }
+
+    /// @dev Override _update to prevent transfers
+    /// @notice Only allows minting, reverts on transfer attempts
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal virtual override returns (address) {
+        // Only allow minting (auth == address(0)), revert on transfer attempts
+        if (auth != address(0)) {
+            revert NonTransferableStamp();
+        }
+
+        return super._update(to, tokenId, auth);
     }
 }

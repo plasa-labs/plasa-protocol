@@ -17,6 +17,9 @@ interface IStamp is IERC721Enumerable {
     /// @param currentTimestamp The current block timestamp
     error DeadlineExpired(uint256 deadline, uint256 currentTimestamp);
 
+    /// @notice Thrown when attempting to transfer, approve, or perform any operation that would change token ownership
+    error NonTransferableStamp();
+
     /// @notice The address of the signer authorized to sign minting requests
     function signer() external view returns (address);
 }

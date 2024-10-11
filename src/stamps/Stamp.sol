@@ -29,14 +29,22 @@ abstract contract Stamp is ERC721Enumerable, EIP712 {
     error AlreadyMintedStamp(address user, uint256 stampId);
     // New custom error for invalid signature
     error InvalidSignature();
+    // New custom error for expired deadline
+    error DeadlineExpired(uint256 deadline, uint256 currentTimestamp);
 
-    // Internal minting function
+    // Modified internal minting function
     function _mintStamp(
         address to,
-        bytes calldata data,
-        bytes calldata signature
+        bytes memory data,
+        bytes calldata signature,
+        uint256 deadline
     ) internal virtual returns (uint256) {
-        if (!_verify(data, signature)) {
+        // Check if the deadline has passed
+        if (block.timestamp > deadline) {
+            revert DeadlineExpired(deadline, block.timestamp);
+        }
+
+        if (!_verifySignature(data, signature)) {
             revert InvalidSignature();
         }
 
@@ -51,8 +59,8 @@ abstract contract Stamp is ERC721Enumerable, EIP712 {
     }
 
     // Signature verification
-    function _verify(
-        bytes calldata data,
+    function _verifySignature(
+        bytes memory data,
         bytes calldata signature
     ) internal view returns (bool) {
         return

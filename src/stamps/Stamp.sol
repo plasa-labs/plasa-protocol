@@ -4,8 +4,9 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "./interfaces/IStamp.sol";
 
-abstract contract Stamp is ERC721Enumerable, EIP712 {
+abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
     using ECDSA for bytes32;
 
     // Signer address
@@ -24,13 +25,6 @@ abstract contract Stamp is ERC721Enumerable, EIP712 {
     function getTypedDataHash(
         bytes memory data
     ) public view virtual returns (bytes32);
-
-    // Custom error for when a user has already minted a stamp
-    error AlreadyMintedStamp(address user, uint256 stampId);
-    // New custom error for invalid signature
-    error InvalidSignature();
-    // New custom error for expired deadline
-    error DeadlineExpired(uint256 deadline, uint256 currentTimestamp);
 
     // Modified internal minting function
     function _mintStamp(
@@ -71,7 +65,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712 {
     // Override required by Solidity
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC721Enumerable) returns (bool) {
+    ) public view virtual override(ERC721Enumerable, IStamp) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

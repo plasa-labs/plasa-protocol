@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title Points - A non-transferable ERC20-like token contract
 /// @notice This contract implements a non-transferable token system
@@ -42,7 +42,8 @@ abstract contract Points is IERC20 {
 
 	/// @notice No allowances are permitted for this non-transferable token
 	/// @return uint256 Always returns 0
-	function allowance(address, address) public pure override returns (uint256) {
+	// solhint-disable-next-line func-visibility
+	function allowance(address, address) public view override returns (uint256) {
 		return 0;
 	}
 

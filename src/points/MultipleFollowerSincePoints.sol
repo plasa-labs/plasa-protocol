@@ -11,14 +11,8 @@ import { IMultipleFollowerSincePoints } from "./interfaces/IMultipleFollowerSinc
 /// @notice This contract calculates points based on how long a user has been a follower across multiple accounts
 /// @dev Inherits from Points and implements IMultipleFollowerSincePoints, using multiple IFollowerSinceStamp for duration calculation
 contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
-	/// @notice Custom error for when the input arrays have mismatched lengths
 	StampInfo[] private _stamps;
 
-	/// @notice Initializes the MultipleFollowerSincePoints contract
-	/// @param _stampAddresses An array of IFollowerSinceStamp addresses
-	/// @param _multipliers An array of multipliers corresponding to each stamp
-	/// @param _name The name of the token
-	/// @param _symbol The symbol of the token
 	constructor(
 		address[] memory _stampAddresses,
 		uint256[] memory _multipliers,
@@ -42,35 +36,74 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		return _stamps[index];
 	}
 
-	/// @inheritdoc IMultipleFollowerSincePoints
-	function balanceOf(
-		address account
-	) public view override(IMultipleFollowerSincePoints, IERC20) returns (uint256) {
-		uint256 totalPoints = 0;
-		for (uint256 i = 0; i < _stamps.length; i++) {
-			uint256 followerSince = _stamps[i].stamp.getFollowerSinceTimestamp(account);
-			if (followerSince != 0) {
-				totalPoints += _calculatePoints(followerSince) * _stamps[i].multiplier;
+	/// @inheritdoc Points
+	function _balanceAtTimestamp(
+		address account,
+		uint256 timestamp
+	) internal view override returns (uint256) {
+		uint256 totalPoints;
+		uint256 stampCount = _stamps.length;
+
+		for (uint256 i; i < stampCount; ) {
+			totalPoints += _calculatePointsForStamp(_stamps[i], account, timestamp);
+			unchecked {
+				++i;
 			}
 		}
 		return totalPoints;
 	}
 
-	/// @inheritdoc IMultipleFollowerSincePoints
-	function totalSupply()
-		public
-		view
-		override(IMultipleFollowerSincePoints, IERC20)
-		returns (uint256)
-	{
-		uint256 totalPoints = 0;
-		for (uint256 i = 0; i < _stamps.length; i++) {
-			uint256 stampTotalSupply = _stamps[i].stamp.totalSupply();
-			for (uint256 j = 1; j <= stampTotalSupply; j++) {
-				uint256 followerSince = _stamps[i].stamp.followStartTimestamp(j);
-				if (followerSince != 0) {
-					totalPoints += _calculatePoints(followerSince) * _stamps[i].multiplier;
-				}
+	/// @inheritdoc Points
+	function _totalSupplyAtTimestamp(uint256 timestamp) internal view override returns (uint256) {
+		uint256 totalPoints;
+		uint256 stampCount = _stamps.length;
+
+		for (uint256 i; i < stampCount; ) {
+			totalPoints += _calculateTotalPointsForStamp(_stamps[i], timestamp);
+			unchecked {
+				++i;
+			}
+		}
+		return totalPoints;
+	}
+
+	/// @dev Calculates points for a specific stamp and account at a given timestamp
+	/// @param stampInfo The StampInfo struct containing stamp and multiplier information
+	/// @param account The address of the account to calculate points for
+	/// @param timestamp The timestamp at which to calculate points
+	/// @return The calculated points for the stamp and account
+	function _calculatePointsForStamp(
+		StampInfo storage stampInfo,
+		address account,
+		uint256 timestamp
+	) private view returns (uint256) {
+		uint256 followerSince = stampInfo.stamp.getFollowerSinceTimestamp(account);
+		if (followerSince != 0 && followerSince <= timestamp) {
+			uint256 points = _calculatePointsAtTimestamp(followerSince, timestamp);
+			return points * stampInfo.multiplier;
+		}
+		return 0;
+	}
+
+	/// @dev Calculates total points for a specific stamp at a given timestamp
+	/// @param stampInfo The StampInfo struct containing stamp and multiplier information
+	/// @param timestamp The timestamp at which to calculate total points
+	/// @return The calculated total points for the stamp
+	function _calculateTotalPointsForStamp(
+		StampInfo storage stampInfo,
+		uint256 timestamp
+	) private view returns (uint256) {
+		uint256 totalPoints;
+		uint256 stampTotalSupply = stampInfo.stamp.totalSupply();
+
+		for (uint256 j = 1; j <= stampTotalSupply; ) {
+			uint256 followerSince = stampInfo.stamp.followStartTimestamp(j);
+			if (followerSince != 0 && followerSince <= timestamp) {
+				uint256 points = _calculatePointsAtTimestamp(followerSince, timestamp);
+				totalPoints += points * stampInfo.multiplier;
+			}
+			unchecked {
+				++j;
 			}
 		}
 		return totalPoints;
@@ -78,17 +111,13 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 
 	/// @dev Calculates points based on the duration of following using a square root formula
 	/// @param followerSince The timestamp when the user started following
+	/// @param timestamp The current timestamp
 	/// @return The calculated points
-	function _calculatePoints(uint256 followerSince) private view returns (uint256) {
-		// Calculate the duration of following in seconds
-		uint256 durationInSeconds = block.timestamp - followerSince;
-
-		// Apply the square root formula to calculate points:
-		// 1. Multiply duration by 1e18 to increase precision before taking the square root
-		// 2. Take the square root of the scaled duration
-		// 3. Multiply by 1e9 to further adjust the scale
-		// 4. Divide by 293938769 (approximately sqrt(365 days * 86400 seconds/day) * 1e9)
-		//    This normalization factor ensures that 1 year of following equals roughly 1e18 points
+	function _calculatePointsAtTimestamp(
+		uint256 followerSince,
+		uint256 timestamp
+	) private pure returns (uint256) {
+		uint256 durationInSeconds = timestamp - followerSince;
 		return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
 	}
 }

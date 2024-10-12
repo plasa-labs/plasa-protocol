@@ -61,12 +61,11 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 
 	/// @inheritdoc IFollowerSinceStamp
 	function getFollowerSinceTimestamp(address follower) external view override returns (uint256) {
-		uint256 balance = balanceOf(follower);
-		if (balance == 0) {
+		try this.tokenOfOwnerByIndex(follower, 0) returns (uint256 stampId) {
+			return followStartTimestamp[stampId];
+		} catch {
 			return 0;
 		}
-		uint256 stampId = tokenOfOwnerByIndex(follower, 0);
-		return followStartTimestamp[stampId];
 	}
 
 	/// @notice Generates a hash of the typed data for signature verification

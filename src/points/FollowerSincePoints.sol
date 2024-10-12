@@ -7,17 +7,17 @@ import { IFollowerSincePoints } from "./interfaces/IFollowerSincePoints.sol";
 import { IFollowerSinceStamp } from "../stamps/interfaces/IFollowerSinceStamp.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
-/// @title FollowerSincePoints - A non-transferable token based on follower duration
-/// @notice This contract calculates points based on how long a user has been a follower
+/// @title FollowerSincePoints - Non-transferable token based on follower duration
+/// @notice Calculates and manages points based on how long a user has been a follower
 /// @dev Inherits from Points and implements IFollowerSincePoints
 contract FollowerSincePoints is Points, IFollowerSincePoints {
 	/// @inheritdoc IFollowerSincePoints
 	IFollowerSinceStamp public immutable override followerStamp;
 
 	/// @notice Initializes the FollowerSincePoints contract
-	/// @param _followerStamp The address of the IFollowerSinceStamp contract
-	/// @param _name The name of the token
-	/// @param _symbol The symbol of the token
+	/// @param _followerStamp Address of the IFollowerSinceStamp contract
+	/// @param _name Name of the token
+	/// @param _symbol Symbol of the token
 	constructor(
 		address _followerStamp,
 		string memory _name,
@@ -26,52 +26,68 @@ contract FollowerSincePoints is Points, IFollowerSincePoints {
 		followerStamp = IFollowerSinceStamp(_followerStamp);
 	}
 
-	/// @inheritdoc IFollowerSincePoints
-	function balanceOf(
-		address account
-	) public view override(IERC20, IFollowerSincePoints) returns (uint256) {
-		uint256 followerSince = followerStamp.getFollowerSinceTimestamp(account);
-		if (followerSince == 0) {
+	/// @inheritdoc Points
+	/// @dev Calculates the balance for a user at a specific timestamp based on their follower duration
+	function _balanceAtTimestamp(
+		address user,
+		uint256 timestamp
+	) internal view override returns (uint256) {
+		uint256 followerSince = followerStamp.getFollowerSinceTimestamp(user);
+		if (_isInvalidFollowerTimestamp(followerSince, timestamp)) {
 			return 0;
 		}
-		return _calculatePoints(followerSince);
+		return _calculatePointsAtTimestamp(followerSince, timestamp);
 	}
 
-	/// @inheritdoc IFollowerSincePoints
-	function totalSupply() public view override(IERC20, IFollowerSincePoints) returns (uint256) {
-		uint256 totalPoints = 0;
-		uint256 totalFollowers = followerStamp.totalSupply();
+	/// @inheritdoc Points
+	/// @dev Calculates the total supply of points at a specific timestamp
+	function _totalSupplyAtTimestamp(uint256 timestamp) internal view override returns (uint256) {
+		uint256 totalPoints;
+		uint256 totalStamps = followerStamp.totalSupply();
+		IFollowerSinceStamp stamp = followerStamp; // Cache the followerStamp reference
 
-		for (uint256 i = 1; i <= totalFollowers; i++) {
-			uint256 followerSince = followerStamp.followStartTimestamp(i);
-			if (followerSince == 0) {
-				continue;
+		for (uint256 i = 1; i <= totalStamps; ) {
+			uint256 followerSince = stamp.followStartTimestamp(i);
+			if (followerSince != 0 && followerSince <= timestamp) {
+				unchecked {
+					totalPoints += _calculatePointsAtTimestamp(followerSince, timestamp);
+				}
 			}
-			totalPoints += _calculatePoints(followerSince);
+			unchecked {
+				++i;
+			}
 		}
 
 		return totalPoints;
 	}
 
-	/// @notice Calculates points based on the duration of following using a square root formula
-	/// @dev This function uses a square root calculation to determine points, which creates a
-	///      non-linear growth curve. The longer a user has been following, the more points they
-	///      accumulate, but at a decreasing rate.
-	/// @dev The calculation uses block.timestamp, which can be manipulated by miners to a small
-	///      degree (usually up to 900 seconds). This manipulation is generally not significant
-	///      for long-term following durations but could affect very recent followers.
-	/// @dev The formula used is: sqrt(durationInSeconds * 1e18) * 1e9 / 293938769
-	///      - Multiplication by 1e18 before sqrt to maintain precision
-	///      - Multiplication by 1e9 after sqrt to scale the result
-	///      - Division by 293938769 to adjust the growth rate and final values
-	/// @param followerSince The timestamp when the user started following
-	/// @return uint256 The calculated points, scaled to 18 decimal places
-	function _calculatePoints(uint256 followerSince) private view returns (uint256) {
-		// Calculate the duration of following in seconds
-		uint256 durationInSeconds = block.timestamp - followerSince;
+	/// @dev Checks if the follower timestamp is invalid
+	/// @param followerSince Timestamp when the user started following
+	/// @param timestamp Timestamp to compare against
+	/// @return bool True if the follower timestamp is invalid, false otherwise
+	function _isInvalidFollowerTimestamp(
+		uint256 followerSince,
+		uint256 timestamp
+	) private pure returns (bool) {
+		return followerSince == 0 || followerSince > timestamp;
+	}
 
-		// Calculate and return the points using the square root formula
-		// The divisor (293938769) is carefully chosen to achieve desired point values
+	/// @notice Calculates points based on the duration of following using a square root formula
+	/// @dev Uses a square root calculation for non-linear growth curve:
+	///      - Longer following duration accumulates more points at a decreasing rate
+	///      - Formula: sqrt(durationInSeconds * 1e18) * 1e9 / 293938769
+	///      - 1e18 multiplication before sqrt maintains precision
+	///      - 1e9 multiplication after sqrt scales the result
+	///      - 293938769 division adjusts growth rate and final values
+	/// @dev Note: block.timestamp can be slightly manipulated by miners (up to ~900 seconds)
+	/// @param followerSince Timestamp when the user started following
+	/// @param timestamp Current timestamp for calculation
+	/// @return uint256 Calculated points, scaled to 18 decimal places
+	function _calculatePointsAtTimestamp(
+		uint256 followerSince,
+		uint256 timestamp
+	) private pure returns (uint256) {
+		uint256 durationInSeconds = timestamp - followerSince;
 		return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
 	}
 }

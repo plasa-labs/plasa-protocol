@@ -11,6 +11,12 @@ interface IQuestion {
 		Ended
 	}
 
+	enum QuestionType {
+		Null,
+		Fixed,
+		Open
+	}
+
 	// Structs
 	struct Option {
 		string title;
@@ -28,6 +34,7 @@ interface IQuestion {
 	}
 
 	struct QuestionView {
+		QuestionType questionType;
 		string title;
 		string description;
 		uint256 deadline;
@@ -74,10 +81,6 @@ interface IQuestion {
 
 	// Public functions
 	function getStatus() external view returns (Status);
-
-	function getOptionVoteCount(uint256 optionId) external view returns (uint256);
-
-	function getOptionPointsAccrued(uint256 optionId) external view returns (uint256);
 
 	function hasVoted(address voter, uint256 optionId) external view returns (bool);
 

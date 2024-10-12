@@ -14,6 +14,12 @@ abstract contract Question is Ownable, IQuestion {
 	uint256 public deadline;
 	IPoints public immutable points;
 	Option[] private options;
+	QuestionType public immutable questionType;
+
+	// Mapping to store vote counts for each option
+	mapping(uint256 optionId => uint256 count) public optionVoteCounts;
+	// Mapping to store points accrued for each option
+	mapping(uint256 optionId => uint256 points) public optionPointsAccrued;
 
 	// Constructor
 	constructor(
@@ -38,10 +44,13 @@ abstract contract Question is Ownable, IQuestion {
 		if (block.timestamp >= deadline) revert VotingEnded();
 		if (optionId == 0 || optionId > options.length) revert InvalidOption();
 
-		_beforeVoting(optionId);
-		_vote(optionId);
+		_processVote(optionId);
 
 		uint256 timestamp = (block.timestamp / 1 days) * 1 days;
+
+		optionVoteCounts[optionId]++;
+		optionPointsAccrued[optionId] += points.balanceAtTimestamp(msg.sender, deadline);
+
 		emit Voted(msg.sender, optionId, timestamp);
 	}
 
@@ -72,23 +81,27 @@ abstract contract Question is Ownable, IQuestion {
 
 	function getQuestionView(address user) external view returns (QuestionView memory) {
 		uint256 totalVotes = 0;
-		OptionView[] memory optionViews = new OptionView[](options.length);
+		// Adjust the array size to exclude the empty option at index 0
+		OptionView[] memory optionViews = new OptionView[](options.length - 1);
 
-		for (uint256 i = 0; i < options.length; i++) {
-			uint256 voteCount = getOptionVoteCount(i);
+		// Start the loop from index 1 to skip the empty option
+		for (uint256 i = 1; i < options.length; i++) {
+			uint256 voteCount = optionVoteCounts[i];
 			totalVotes += voteCount;
-			optionViews[i] = OptionView({
+			// Adjust the index for optionViews to start at 0
+			optionViews[i - 1] = OptionView({
 				title: options[i].title,
 				description: options[i].description,
 				proposer: options[i].proposer,
 				voteCount: voteCount,
-				pointsAccrued: getOptionPointsAccrued(i),
+				pointsAccrued: optionPointsAccrued[i],
 				userVoted: hasVoted(user, i)
 			});
 		}
 
 		return
 			QuestionView({
+				questionType: questionType,
 				title: title,
 				description: description,
 				deadline: deadline,
@@ -101,9 +114,8 @@ abstract contract Question is Ownable, IQuestion {
 	}
 
 	// Internal functions
-	function _beforeVoting(uint256 optionId) internal virtual;
 
-	function _vote(uint256 optionId) internal virtual;
+	function _processVote(uint256 optionId) internal virtual;
 
 	function _addOption(string memory _title, string memory _description) internal {
 		uint256 optionId = options.length;
@@ -118,10 +130,6 @@ abstract contract Question is Ownable, IQuestion {
 			return Status.Ended;
 		}
 	}
-
-	function getOptionVoteCount(uint256 optionId) public view virtual returns (uint256);
-
-	function getOptionPointsAccrued(uint256 optionId) public view virtual returns (uint256);
 
 	function hasVoted(address voter, uint256 optionId) public view virtual returns (bool);
 }

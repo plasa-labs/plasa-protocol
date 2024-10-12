@@ -5,26 +5,19 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract Question is Ownable {
-	// Errors
-	error VotingEnded();
-	error AlreadyVoted();
-	error InvalidOption();
-
-	// Enums
+	// Type declarations
 	enum Status {
 		Null,
 		Active,
 		Ended
 	}
 
-	// Structs
 	struct Option {
 		string title;
 		string description;
 		address proposer;
 	}
 
-	// New struct for question view
 	struct OptionView {
 		string title;
 		string description;
@@ -40,6 +33,7 @@ abstract contract Question is Ownable {
 		uint256 deadline;
 		uint256 totalVoteCount;
 		OptionView[] options;
+		Status status;
 	}
 
 	// State variables
@@ -47,18 +41,17 @@ abstract contract Question is Ownable {
 	string public description;
 	uint256 public deadline;
 	IERC20 public immutable points;
-
-	// Arrays
 	Option[] private options;
-
-	// Mappings
-	mapping(address => uint256) public voterToOptionId;
-	mapping(uint256 => uint256) public voteCounts;
 
 	// Events
 	event QuestionUpdated(string newTitle, string newDescription, uint256 newDeadline);
 	event Voted(address indexed voter, uint256 indexed optionId, uint256 timestamp);
 	event NewOption(address indexed proposer, uint256 indexed optionId, string title);
+
+	// Errors
+	error VotingEnded();
+	error AlreadyVoted();
+	error InvalidOption();
 
 	// Constructor
 	constructor(
@@ -89,22 +82,6 @@ abstract contract Question is Ownable {
 		emit Voted(msg.sender, optionId, timestamp);
 	}
 
-	function getOptions() external view virtual returns (Option[] memory) {
-		return options;
-	}
-
-	function getOption(uint256 optionId) external view virtual returns (Option memory) {
-		if (optionId >= options.length) revert InvalidOption();
-		return options[optionId];
-	}
-
-	function getOptionVoteCount(uint256 optionId) internal view virtual returns (uint256);
-
-	function getOptionPointsAccrued(uint256 optionId) internal view virtual returns (uint256);
-
-	function hasVoted(address voter, uint256 optionId) internal view virtual returns (bool);
-
-	// External functions (onlyOwner)
 	function updateTitle(string memory _title) external onlyOwner {
 		title = _title;
 		emit QuestionUpdated(_title, description, deadline);
@@ -120,26 +97,16 @@ abstract contract Question is Ownable {
 		emit QuestionUpdated(title, description, _deadline);
 	}
 
-	// Internal functions
-	function _beforeVoting(uint256 optionId) internal virtual;
-
-	function _vote(uint256 optionId) internal virtual;
-
-	function _addOption(string memory _title, string memory _description) internal virtual {
-		uint256 optionId = options.length;
-		options.push(Option(_title, _description, msg.sender));
-		emit NewOption(msg.sender, optionId, _title);
+	// External view functions
+	function getOptions() external view virtual returns (Option[] memory) {
+		return options;
 	}
 
-	function getStatus() external view returns (Status) {
-		if (block.timestamp < deadline) {
-			return Status.Active;
-		} else {
-			return Status.Ended;
-		}
+	function getOption(uint256 optionId) external view virtual returns (Option memory) {
+		if (optionId >= options.length) revert InvalidOption();
+		return options[optionId];
 	}
 
-	// New function to get question view
 	function getQuestionView(address user) external view virtual returns (QuestionView memory) {
 		uint256 totalVotes = 0;
 		OptionView[] memory optionViews = new OptionView[](options.length);
@@ -163,7 +130,33 @@ abstract contract Question is Ownable {
 				description: description,
 				deadline: deadline,
 				totalVoteCount: totalVotes,
-				options: optionViews
+				options: optionViews,
+				status: getStatus()
 			});
 	}
+
+	// Internal functions
+	function _beforeVoting(uint256 optionId) internal virtual;
+
+	function _vote(uint256 optionId) internal virtual;
+
+	function _addOption(string memory _title, string memory _description) internal virtual {
+		uint256 optionId = options.length;
+		options.push(Option(_title, _description, msg.sender));
+		emit NewOption(msg.sender, optionId, _title);
+	}
+
+	function getStatus() public view returns (Status) {
+		if (block.timestamp < deadline) {
+			return Status.Active;
+		} else {
+			return Status.Ended;
+		}
+	}
+
+	function getOptionVoteCount(uint256 optionId) public view virtual returns (uint256);
+
+	function getOptionPointsAccrued(uint256 optionId) public view virtual returns (uint256);
+
+	function hasVoted(address voter, uint256 optionId) public view virtual returns (bool);
 }

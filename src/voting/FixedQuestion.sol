@@ -61,7 +61,7 @@ contract FixedQuestion is Question, IFixedQuestion {
 	}
 
 	/// @inheritdoc Question
-	function canAddOption(address) public view override returns (bool) {
+	function canAddOption(address) public pure override returns (bool) {
 		return false;
 	}
 }

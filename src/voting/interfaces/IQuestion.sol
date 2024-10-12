@@ -35,6 +35,7 @@ interface IQuestion {
 		OptionView[] options;
 		Status status;
 		address owner;
+		uint256 started;
 	}
 
 	// Events
@@ -79,4 +80,6 @@ interface IQuestion {
 	function getOptionPointsAccrued(uint256 optionId) external view returns (uint256);
 
 	function hasVoted(address voter, uint256 optionId) external view returns (bool);
+
+	function deploymentTime() external view returns (uint256);
 }

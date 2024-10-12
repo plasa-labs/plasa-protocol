@@ -8,6 +8,7 @@ import { IPoints } from "../points/interfaces/IPoints.sol";
 
 abstract contract Question is Ownable, IQuestion {
 	// State variables
+	uint256 public immutable deploymentTime;
 	string public title;
 	string public description;
 	uint256 public deadline;
@@ -22,6 +23,7 @@ abstract contract Question is Ownable, IQuestion {
 		uint256 _deadline,
 		address _pointsAddress
 	) Ownable(initialOwner) {
+		deploymentTime = block.timestamp;
 		title = _title;
 		description = _description;
 		deadline = _deadline;
@@ -93,7 +95,8 @@ abstract contract Question is Ownable, IQuestion {
 				totalVoteCount: totalVotes,
 				options: optionViews,
 				status: getStatus(),
-				owner: owner()
+				owner: owner(),
+				started: deploymentTime
 			});
 	}
 

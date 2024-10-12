@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Points } from "./Points.sol";
 import { IFollowerSinceStamp } from "../stamps/interfaces/IFollowerSinceStamp.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -26,13 +25,13 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	}
 
 	/// @inheritdoc IMultipleFollowerSincePoints
-	function stamps() public view returns (StampInfo[] memory) {
+	function stamps() external view returns (StampInfo[] memory) {
 		return _stamps;
 	}
 
 	/// @inheritdoc IMultipleFollowerSincePoints
-	function stampByIndex(uint256 index) public view returns (StampInfo memory) {
-		require(index < _stamps.length, "Index out of bounds");
+	function stampByIndex(uint256 index) external view returns (StampInfo memory) {
+		if (index >= _stamps.length) revert IndexOutOfBounds();
 		return _stamps[index];
 	}
 

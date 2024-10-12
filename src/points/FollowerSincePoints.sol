@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Points } from "./Points.sol";
 import { IFollowerSincePoints } from "./interfaces/IFollowerSincePoints.sol";
 import { IFollowerSinceStamp } from "../stamps/interfaces/IFollowerSinceStamp.sol";
@@ -10,7 +9,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 /// @title FollowerSincePoints - Non-transferable token based on follower duration
 /// @notice Calculates and manages points based on how long a user has been a follower
 /// @dev Inherits from Points and implements IFollowerSincePoints
-contract FollowerSincePoints is Points, IFollowerSincePoints {
+contract FollowerSincePoints is IFollowerSincePoints, Points {
 	/// @inheritdoc IFollowerSincePoints
 	IFollowerSinceStamp public immutable override followerStamp;
 

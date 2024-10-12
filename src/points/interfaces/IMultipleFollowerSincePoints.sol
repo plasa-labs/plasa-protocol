@@ -12,6 +12,10 @@ interface IMultipleFollowerSincePoints is IPoints {
 	/// @dev This error is used in functions that expect arrays of equal length
 	error ArrayLengthMismatch();
 
+	/// @notice Custom error thrown when attempting to access an index that is out of the valid range
+	/// @dev This error is used when trying to access a stamp at an invalid index in the stamps array
+	error IndexOutOfBounds();
+
 	/// @notice Struct to encapsulate information about each follower stamp and its point multiplier
 	/// @dev Combines an IFollowerSinceStamp with its corresponding point multiplier for efficient storage and retrieval
 	struct StampInfo {
@@ -25,7 +29,7 @@ interface IMultipleFollowerSincePoints is IPoints {
 	function stamps() external view returns (StampInfo[] memory);
 
 	/// @notice Fetches the stamp information at a specific index in the stamps array
-	/// @dev This function should revert if the provided index is out of bounds
+	/// @dev This function should revert with IndexOutOfBounds if the provided index is out of bounds
 	/// @param index The zero-based index of the stamp in the stamps array
 	/// @return A StampInfo struct containing the stamp and multiplier information at the given index
 	function stampByIndex(uint256 index) external view returns (StampInfo memory);

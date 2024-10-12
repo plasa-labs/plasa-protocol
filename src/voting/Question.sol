@@ -131,7 +131,8 @@ abstract contract Question is Ownable, IQuestion {
 				started: deploymentTime,
 				userOptionVoted: userOptionVoted,
 				userPointsCurrent: points.balanceOf(user),
-				userPointsDeadline: points.balanceAtTimestamp(user, deadline)
+				userPointsDeadline: points.balanceAtTimestamp(user, deadline),
+				userCanAddOption: canAddOption(user)
 			});
 	}
 
@@ -161,4 +162,9 @@ abstract contract Question is Ownable, IQuestion {
 
 	/// @inheritdoc IQuestion
 	function hasVoted(address voter, uint256 optionId) public view virtual returns (bool);
+
+	/// @dev Checks if a user can add an option
+	/// @param user The address of the user to check
+	/// @return bool True if the user can add an option, false otherwise
+	function canAddOption(address user) public view virtual returns (bool);
 }

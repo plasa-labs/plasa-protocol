@@ -40,7 +40,7 @@ contract OpenQuestion is Question, IOpenQuestion {
 	/// @param _title The title of the new option
 	/// @param _description The description of the new option
 	function addOption(string memory _title, string memory _description) external override {
-		if (points.balanceAtTimestamp(msg.sender, deadline) < minPointsToAddOption) {
+		if (!canAddOption(msg.sender)) {
 			revert InsufficientPoints();
 		}
 		_addOption(_title, _description);
@@ -75,5 +75,10 @@ contract OpenQuestion is Question, IOpenQuestion {
 	function updateMinPointsToAddOption(uint256 _minPointsToAddOption) external override onlyOwner {
 		minPointsToAddOption = _minPointsToAddOption;
 		emit MinPointsToAddOptionUpdated(_minPointsToAddOption);
+	}
+
+	/// @inheritdoc Question
+	function canAddOption(address user) public view override returns (bool) {
+		return points.balanceAtTimestamp(user, deadline) >= minPointsToAddOption;
 	}
 }

@@ -53,6 +53,7 @@ interface IQuestion {
 		uint256 userOptionVoted;
 		uint256 userPointsCurrent;
 		uint256 userPointsDeadline;
+		bool userCanAddOption;
 	}
 
 	// Events

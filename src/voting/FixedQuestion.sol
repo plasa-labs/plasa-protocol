@@ -59,4 +59,9 @@ contract FixedQuestion is Question, IFixedQuestion {
 	) public view override(IQuestion, Question) returns (bool) {
 		return userVotes[voter] == optionId;
 	}
+
+	/// @inheritdoc Question
+	function canAddOption(address) public view override returns (bool) {
+		return false;
+	}
 }

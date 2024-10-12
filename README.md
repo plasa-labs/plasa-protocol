@@ -36,4 +36,20 @@ struct OptionView {
 }
 ```
 
+```solidity
+/// @dev Represents the current status of a question
+enum Status {
+	Null,
+	Active,
+	Ended
+}
+
+/// @dev Defines the type of question
+enum QuestionType {
+	Null,
+	Fixed,
+	Open
+}
+```
+
 More details about the `OptionView` struct can be found in the `IQuestion.sol` interface.

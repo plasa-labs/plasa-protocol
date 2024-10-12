@@ -31,29 +31,29 @@ interface IQuestion {
 
 	/// @dev Represents a view of a voting option with additional user-specific data
 	struct OptionView {
-		string title;
-		string description;
-		address proposer;
-		uint256 voteCount;
-		uint256 pointsAccrued;
-		bool userVoted;
+		string title; // The title of the option, set in Question._addOption()
+		string description; // The description of the option, set in Question._addOption()
+		address proposer; // The address that proposed this option, set to msg.sender in Question._addOption()
+		uint256 voteCount; // The total number of votes for this option, incremented in Question.vote()
+		uint256 pointsAccrued; // Total points accrued for this option, updated in Question.vote()
+		bool userVoted; // Whether the specific user voted for this option, checked in Question.getQuestionView()
 	}
 
 	/// @dev Represents a comprehensive view of a question with all its details
 	struct QuestionView {
-		QuestionType questionType;
-		string title;
-		string description;
-		uint256 deadline;
-		uint256 totalVoteCount;
-		OptionView[] options;
-		Status status;
-		address owner;
-		uint256 started;
-		uint256 userOptionVoted;
-		uint256 userPointsCurrent;
-		uint256 userPointsDeadline;
-		bool userCanAddOption;
+		QuestionType questionType; // The type of question (Fixed or Open), set in the constructor of OpenQuestion or FixedQuestion
+		string title; // The title of the question, can be updated with Question.updateTitle()
+		string description; // The description of the question, can be updated with Question.updateDescription()
+		uint256 deadline; // The voting deadline, can be updated with Question.updateDeadline()
+		uint256 totalVoteCount; // The total number of votes across all options, calculated in Question.getQuestionView()
+		OptionView[] options; // Array of all voting options with their details, populated in Question.getQuestionView()
+		Status status; // The current status of the question (Active or Ended), determined by Question.getStatus()
+		address owner; // The owner of the question contract, set in the constructor and managed by Ownable
+		uint256 started; // The timestamp when the question was deployed, set in the Question constructor
+		uint256 userOptionVoted; // The option ID the user voted for (0 if not voted), set in Question.getQuestionView()
+		uint256 userPointsCurrent; // The user's current point balance, retrieved from the Points contract
+		uint256 userPointsDeadline; // The user's point balance at the voting deadline, retrieved from the Points contract
+		bool userCanAddOption; // Whether the user can add a new option (always false for FixedQuestion, conditional for OpenQuestion)
 	}
 
 	// Events

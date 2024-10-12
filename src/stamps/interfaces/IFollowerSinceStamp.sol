@@ -20,8 +20,8 @@ interface IFollowerSinceStamp is IStamp {
 	/// @notice The identifier of the followed account on the platform
 	function FOLLOWED() external view returns (string memory);
 
-	/// @notice Mapping to store the "since" timestamp for each follower
-	function followerSince(address follower) external view returns (uint256);
+	/// @notice Mapping to store the "since" timestamp for each stamp token ID
+	function followStartTimestamp(uint256 stampId) external view returns (uint256);
 
 	/// @notice Mints a new follower since stamp
 	/// @dev This function should verify the signature and mint a new stamp
@@ -36,6 +36,11 @@ interface IFollowerSinceStamp is IStamp {
 		uint256 deadline,
 		bytes calldata signature
 	) external returns (uint256 stampId);
+
+	/// @notice Get the follower since timestamp for a given address
+	/// @param follower The address to check
+	/// @return The timestamp when the follower started following, or 0 if not found
+	function getFollowerSinceTimestamp(address follower) external view returns (uint256);
 
 	/// @notice Emitted when a new follower since stamp is minted
 	/// @param platform The platform identifier

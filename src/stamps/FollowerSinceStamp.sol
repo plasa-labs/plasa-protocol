@@ -8,16 +8,14 @@ import { IFollowerSinceStamp } from "./interfaces/IFollowerSinceStamp.sol";
 /// @notice A contract for minting NFTs that represent a user's follower status since a specific date
 /// @dev Inherits from Stamp and implements IFollowerSinceStamp interface
 contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
-	/// @notice The platform where the following relationship exists (e.g., "Twitter", "Instagram")
 	/// @inheritdoc IFollowerSinceStamp
 	string public override PLATFORM;
 
-	/// @notice The account being followed
 	/// @inheritdoc IFollowerSinceStamp
 	string public override FOLLOWED;
 
-	/// @notice Mapping to store the "since" timestamp for each follower
-	mapping(address => uint256) public followerSince;
+	/// @inheritdoc IFollowerSinceStamp
+	mapping(uint256 stampId => uint256 timestamp) public override followStartTimestamp;
 
 	/// @notice Initializes the FollowerSinceStamp contract
 	/// @param _signer The address authorized to sign mint requests
@@ -32,8 +30,6 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		FOLLOWED = _followed;
 	}
 
-	/// @notice Mints a new Follower Since Stamp NFT
-	/// @dev Verifies the signature and mints the stamp if valid
 	/// @inheritdoc IFollowerSinceStamp
 	function mintStamp(
 		string calldata follower,
@@ -53,14 +49,24 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 			deadline
 		);
 
-		uint256 tokenId = _mintStamp(msg.sender, encodedData, signature, deadline);
+		uint256 stampId = _mintStamp(msg.sender, encodedData, signature, deadline);
 
-		// Store the "since" timestamp for the follower
-		followerSince[msg.sender] = since;
+		// Store the "since" timestamp for the stamp
+		followStartTimestamp[stampId] = since;
 
-		emit FollowerSince(PLATFORM, FOLLOWED, follower, since, tokenId, msg.sender);
+		emit FollowerSince(PLATFORM, FOLLOWED, follower, since, stampId, msg.sender);
 
-		return tokenId;
+		return stampId;
+	}
+
+	/// @inheritdoc IFollowerSinceStamp
+	function getFollowerSinceTimestamp(address follower) external view override returns (uint256) {
+		uint256 balance = balanceOf(follower);
+		if (balance == 0) {
+			return 0;
+		}
+		uint256 stampId = tokenOfOwnerByIndex(follower, 0);
+		return followStartTimestamp[stampId];
 	}
 
 	/// @notice Generates a hash of the typed data for signature verification

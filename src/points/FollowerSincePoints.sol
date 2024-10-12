@@ -64,12 +64,15 @@ contract FollowerSincePoints is Points {
 		// Calculate the duration of following in seconds
 		uint256 durationInSeconds = block.timestamp - followerSince;
 
-		// Calculate points using a square root formula:
-		// points = sqrt(durationInSeconds * POINTS_PER_SECOND)
+		// Calculate points using the formula: points = sqrt(durationInSeconds) / sqrt(1 days)
 		// This creates a non-linear growth in points over time:
-		// - New followers gain points quickly at first
-		// - Long-term followers continue to gain points, but at a slower rate
-		// The square root ensures that the point growth is more balanced over time
-		return Math.sqrt(durationInSeconds * POINTS_PER_SECOND);
+		// - 1 day = 1 point
+		// - 4 days = 2 points
+		// - 9 days = 3 points
+		// - 16 days = 4 points, and so on
+		uint256 sqrtDuration = Math.sqrt(durationInSeconds * 1e18);
+		uint256 sqrtDay = Math.sqrt(1 days * 1e18);
+
+		return (sqrtDuration * 1e18) / sqrtDay;
 	}
 }

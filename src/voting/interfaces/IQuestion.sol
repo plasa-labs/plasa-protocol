@@ -29,16 +29,6 @@ interface IQuestion {
 		address proposer;
 	}
 
-	/// @dev Represents a view of a voting option with additional user-specific data
-	struct OptionView {
-		string title; // The title of the option, set in Question._addOption()
-		string description; // The description of the option, set in Question._addOption()
-		address proposer; // The address that proposed this option, set to msg.sender in Question._addOption()
-		uint256 voteCount; // The total number of votes for this option, incremented in Question.vote()
-		uint256 pointsAccrued; // Total points accrued for this option, updated in Question.vote()
-		bool userVoted; // Whether the specific user voted for this option, checked in Question.getQuestionView()
-	}
-
 	/// @dev Represents a comprehensive view of a question with all its details
 	struct QuestionView {
 		QuestionType questionType; // The type of question (Fixed or Open), set in the constructor of OpenQuestion or FixedQuestion
@@ -54,6 +44,16 @@ interface IQuestion {
 		uint256 userPointsCurrent; // The user's current point balance, retrieved from the Points contract
 		uint256 userPointsDeadline; // The user's point balance at the voting deadline, retrieved from the Points contract
 		bool userCanAddOption; // Whether the user can add a new option (always false for FixedQuestion, conditional for OpenQuestion)
+	}
+
+	/// @dev Represents a view of a voting option with additional user-specific data
+	struct OptionView {
+		string title; // The title of the option, set in Question._addOption()
+		string description; // The description of the option, set in Question._addOption()
+		address proposer; // The address that proposed this option, set to msg.sender in Question._addOption()
+		uint256 voteCount; // The total number of votes for this option, incremented in Question.vote()
+		uint256 pointsAccrued; // Total points accrued for this option, updated in Question.vote()
+		bool userVoted; // Whether the specific user voted for this option, checked in Question.getQuestionView()
 	}
 
 	// Events

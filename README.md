@@ -34,12 +34,12 @@ struct QuestionView {
 ```solidity
 /// @dev Represents a view of a voting option with additional user-specific data
 struct OptionView {
-	string title; // The title of the option, set in Question._addOption()
-	string description; // The description of the option, set in Question._addOption()
-	address proposer; // The address that proposed this option, set to msg.sender in Question._addOption()
-	uint256 voteCount; // The total number of votes for this option, incremented in Question.vote()
-	uint256 pointsAccrued; // Total points accrued for this option, updated in Question.vote()
-	bool userVoted; // Whether the specific user voted for this option, checked in Question.getQuestionView()
+	string title; // The title of the option
+	string description; // The description of the option
+	address proposer; // The address that proposed this option
+	uint256 voteCount; // The total number of votes for this option
+	uint256 pointsAccrued; // Total points accrued for this option
+	bool userVoted; // Whether the specific user voted for this option
 }
 ```
 

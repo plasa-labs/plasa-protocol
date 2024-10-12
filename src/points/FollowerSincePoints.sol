@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Points } from "./Points.sol";
+import { IFollowerSincePoints } from "./interfaces/IFollowerSincePoints.sol";
 import { IFollowerSinceStamp } from "../stamps/interfaces/IFollowerSinceStamp.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title FollowerSincePoints - A non-transferable token based on follower duration
 /// @notice This contract calculates points based on how long a user has been a follower
-/// @dev Inherits from Points and uses IFollowerSinceStamp for duration calculation
-contract FollowerSincePoints is Points {
-	IFollowerSinceStamp public immutable followerStamp;
+/// @dev Inherits from Points and implements IFollowerSincePoints
+contract FollowerSincePoints is Points, IFollowerSincePoints {
+	/// @inheritdoc IFollowerSincePoints
+	IFollowerSinceStamp public immutable override followerStamp;
 
 	/// @notice Initializes the FollowerSincePoints contract
 	/// @param _followerStamp The address of the IFollowerSinceStamp contract
@@ -23,12 +26,10 @@ contract FollowerSincePoints is Points {
 		followerStamp = IFollowerSinceStamp(_followerStamp);
 	}
 
-	/// @notice Calculates the balance of points for a given account
-	/// @dev Uses a square root formula based on the duration of following
-	/// @param account The address to calculate the balance for
-	/// @return The number of points the account has earned
-	/// @dev Returns 0 if the account is not a follower
-	function balanceOf(address account) public view override returns (uint256) {
+	/// @inheritdoc IFollowerSincePoints
+	function balanceOf(
+		address account
+	) public view override(IERC20, IFollowerSincePoints) returns (uint256) {
 		uint256 followerSince = followerStamp.getFollowerSinceTimestamp(account);
 		if (followerSince == 0) {
 			return 0;
@@ -36,11 +37,8 @@ contract FollowerSincePoints is Points {
 		return _calculatePoints(followerSince);
 	}
 
-	/// @notice Returns the total supply of points
-	/// @dev Calculates the total points for all followers using the followStartTimestamp
-	/// @return The total supply of points
-	/// @dev Iterates through all followers, which may be gas-intensive for large numbers of followers
-	function totalSupply() public view override returns (uint256) {
+	/// @inheritdoc IFollowerSincePoints
+	function totalSupply() public view override(IERC20, IFollowerSincePoints) returns (uint256) {
 		uint256 totalPoints = 0;
 		uint256 totalFollowers = followerStamp.totalSupply();
 
@@ -55,14 +53,25 @@ contract FollowerSincePoints is Points {
 		return totalPoints;
 	}
 
-	/// @dev Calculates points based on the duration of following using a square root formula
+	/// @notice Calculates points based on the duration of following using a square root formula
+	/// @dev This function uses a square root calculation to determine points, which creates a
+	///      non-linear growth curve. The longer a user has been following, the more points they
+	///      accumulate, but at a decreasing rate.
+	/// @dev The calculation uses block.timestamp, which can be manipulated by miners to a small
+	///      degree (usually up to 900 seconds). This manipulation is generally not significant
+	///      for long-term following durations but could affect very recent followers.
+	/// @dev The formula used is: sqrt(durationInSeconds * 1e18) * 1e9 / 293938769
+	///      - Multiplication by 1e18 before sqrt to maintain precision
+	///      - Multiplication by 1e9 after sqrt to scale the result
+	///      - Division by 293938769 to adjust the growth rate and final values
 	/// @param followerSince The timestamp when the user started following
-	/// @return The calculated points
-	/// @dev Uses block.timestamp, which can be manipulated by miners to a small degree
+	/// @return uint256 The calculated points, scaled to 18 decimal places
 	function _calculatePoints(uint256 followerSince) private view returns (uint256) {
+		// Calculate the duration of following in seconds
 		uint256 durationInSeconds = block.timestamp - followerSince;
 
-		// Adjusted divisor to get closer to desired values
+		// Calculate and return the points using the square root formula
+		// The divisor (293938769) is carefully chosen to achieve desired point values
 		return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
 	}
 }

@@ -10,27 +10,24 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 /// @dev Inherits from Points and uses IFollowerSinceStamp for duration calculation
 contract FollowerSincePoints is Points {
 	IFollowerSinceStamp public immutable followerStamp;
-	uint256 public immutable POINTS_PER_SECOND;
 
-	/// @notice Initializes the FollowerPoints contract
+	/// @notice Initializes the FollowerSincePoints contract
 	/// @param _followerStamp The address of the IFollowerSinceStamp contract
 	/// @param _name The name of the token
 	/// @param _symbol The symbol of the token
-	/// @param _pointsPerSecond The number of points earned per second (in wei, 18 decimal places)
 	constructor(
 		address _followerStamp,
 		string memory _name,
-		string memory _symbol,
-		uint256 _pointsPerSecond
+		string memory _symbol
 	) Points(_name, _symbol, 18) {
 		followerStamp = IFollowerSinceStamp(_followerStamp);
-		POINTS_PER_SECOND = _pointsPerSecond;
 	}
 
 	/// @notice Calculates the balance of points for a given account
 	/// @dev Uses a square root formula based on the duration of following
 	/// @param account The address to calculate the balance for
-	/// @return uint256 The number of points the account has earned
+	/// @return The number of points the account has earned
+	/// @dev Returns 0 if the account is not a follower
 	function balanceOf(address account) public view override returns (uint256) {
 		uint256 followerSince = followerStamp.getFollowerSinceTimestamp(account);
 		if (followerSince == 0) {
@@ -41,7 +38,8 @@ contract FollowerSincePoints is Points {
 
 	/// @notice Returns the total supply of points
 	/// @dev Calculates the total points for all followers using the followStartTimestamp
-	/// @return uint256 The total supply of points
+	/// @return The total supply of points
+	/// @dev Iterates through all followers, which may be gas-intensive for large numbers of followers
 	function totalSupply() public view override returns (uint256) {
 		uint256 totalPoints = 0;
 		uint256 totalFollowers = followerStamp.totalSupply();
@@ -59,20 +57,12 @@ contract FollowerSincePoints is Points {
 
 	/// @dev Calculates points based on the duration of following using a square root formula
 	/// @param followerSince The timestamp when the user started following
-	/// @return uint256 The calculated points
+	/// @return The calculated points
+	/// @dev Uses block.timestamp, which can be manipulated by miners to a small degree
 	function _calculatePoints(uint256 followerSince) private view returns (uint256) {
-		// Calculate the duration of following in seconds
 		uint256 durationInSeconds = block.timestamp - followerSince;
 
-		// Calculate points using the formula: points = sqrt(durationInSeconds) / sqrt(1 days)
-		// This creates a non-linear growth in points over time:
-		// - 1 day = 1 point
-		// - 4 days = 2 points
-		// - 9 days = 3 points
-		// - 16 days = 4 points, and so on
-		uint256 sqrtDuration = Math.sqrt(durationInSeconds * 1e18);
-		uint256 sqrtDay = Math.sqrt(1 days * 1e18);
-
-		return (sqrtDuration * 1e18) / sqrtDay;
+		// Adjusted divisor to get closer to desired values
+		return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
 	}
 }

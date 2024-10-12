@@ -24,15 +24,6 @@ abstract contract Points is IERC20 {
 		_decimals = tokenDecimals;
 	}
 
-	/// @notice Gets the balance of the specified address
-	/// @param account The address to query the balance of
-	/// @return An uint256 representing the amount owned by the passed address
-	function balanceOf(address account) public view virtual override returns (uint256);
-
-	/// @notice Total number of tokens in existence
-	/// @return An uint256 representing the total supply of tokens
-	function totalSupply() public view virtual override returns (uint256);
-
 	/// @notice Transfer is not supported for this non-transferable token
 	/// @dev Always reverts with NonTransferable error
 	/// @return bool This function always reverts and never returns

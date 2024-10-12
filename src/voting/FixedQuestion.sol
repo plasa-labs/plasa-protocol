@@ -5,36 +5,44 @@ import { Question } from "./Question.sol";
 import { IFixedQuestion, IQuestion } from "./interfaces/IFixedQuestion.sol";
 
 /// @title Fixed Question Contract for Voting System
-/// @dev Implements a fixed-choice voting system where users can only vote once
-/// @notice This contract allows users to vote on predefined options, with each user limited to one vote
+/// @dev Implements a fixed-choice voting system where users can vote only once on predefined options
+/// @notice This contract allows the creation of questions with fixed options and enables users to cast a single vote
 contract FixedQuestion is Question, IFixedQuestion {
-	// Mapping to store user votes: user address => option ID
+	/// @dev Mapping to store user votes: user address => option ID
 	mapping(address => uint256) private userVotes;
 
-	/// @notice Constructor to initialize the fixed question
+	/// @notice Initializes a new fixed question with predefined options
 	/// @dev Sets up the initial state and options for the fixed question
-	/// @param initialOwner The address of the initial owner of the contract
-	/// @param _title The title of the question
-	/// @param _description The description of the question
-	/// @param _deadline The deadline for voting
-	/// @param _pointsAddress The address of the Points contract
-	/// @param initialOptions An array of initial options for the question
+	/// @param initialOwner The address that will own and manage this question
+	/// @param _title A short, descriptive title for the question
+	/// @param _description A more detailed explanation of the question
+	/// @param _deadline The timestamp after which voting will be closed
+	/// @param _pointsAddress The address of the Points contract for vote weighting
+	/// @param _initialOptionTitles An array of titles for the initial voting options
+	/// @param _initialOptionDescriptions An array of descriptions for the initial voting options
 	constructor(
 		address initialOwner,
 		string memory _title,
 		string memory _description,
 		uint256 _deadline,
 		address _pointsAddress,
-		Option[] memory initialOptions
+		string[] memory _initialOptionTitles,
+		string[] memory _initialOptionDescriptions
 	) Question(initialOwner, _title, _description, _deadline, _pointsAddress) {
 		questionType = QuestionType.Fixed;
+		if (_initialOptionTitles.length != _initialOptionDescriptions.length) {
+			revert MismatchedOptionArrays();
+		}
+
 		// Add initial options
-		for (uint256 i = 0; i < initialOptions.length; i++) {
-			_addOption(initialOptions[i].title, initialOptions[i].description);
+		for (uint256 i = 0; i < _initialOptionTitles.length; i++) {
+			_addOption(_initialOptionTitles[i], _initialOptionDescriptions[i]);
 		}
 	}
 
-	/// @inheritdoc Question
+	/// @notice Processes a user's vote
+	/// @dev Internal function to record a user's vote, ensuring they can only vote once
+	/// @param optionId The ID of the option the user is voting for
 	function _processVote(uint256 optionId) internal override {
 		// Check if the user has already voted
 		if (userVotes[msg.sender] != 0) {

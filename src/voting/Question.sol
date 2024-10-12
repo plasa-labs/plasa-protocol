@@ -96,11 +96,13 @@ abstract contract Question is Ownable, IQuestion {
 		uint256 totalVotes = 0;
 		// Adjust the array size to exclude the empty option at index 0
 		OptionView[] memory optionViews = new OptionView[](options.length - 1);
+		uint256 userOptionVoted = 0;
 
 		// Start the loop from index 1 to skip the empty option
 		for (uint256 i = 1; i < options.length; i++) {
 			uint256 voteCount = optionVoteCounts[i];
 			totalVotes += voteCount;
+			bool userVotedForOption = hasVoted(user, i);
 			// Adjust the index for optionViews to start at 0
 			optionViews[i - 1] = OptionView({
 				title: options[i].title,
@@ -108,8 +110,12 @@ abstract contract Question is Ownable, IQuestion {
 				proposer: options[i].proposer,
 				voteCount: voteCount,
 				pointsAccrued: optionPointsAccrued[i],
-				userVoted: hasVoted(user, i)
+				userVoted: userVotedForOption
 			});
+
+			if (userVotedForOption) {
+				userOptionVoted = i;
+			}
 		}
 
 		return
@@ -122,7 +128,10 @@ abstract contract Question is Ownable, IQuestion {
 				options: optionViews,
 				status: getStatus(),
 				owner: owner(),
-				started: deploymentTime
+				started: deploymentTime,
+				userOptionVoted: userOptionVoted,
+				userPointsCurrent: points.balanceOf(user),
+				userPointsDeadline: points.balanceAtTimestamp(user, deadline)
 			});
 	}
 

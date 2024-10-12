@@ -50,6 +50,9 @@ interface IQuestion {
 		Status status;
 		address owner;
 		uint256 started;
+		uint256 userOptionVoted;
+		uint256 userPointsCurrent;
+		uint256 userPointsDeadline;
 	}
 
 	// Events

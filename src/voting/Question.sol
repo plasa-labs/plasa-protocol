@@ -21,6 +21,25 @@ abstract contract Question is Ownable {
 	struct Option {
 		string title;
 		string description;
+		address proposer;
+	}
+
+	// New struct for question view
+	struct OptionView {
+		string title;
+		string description;
+		address proposer;
+		uint256 voteCount;
+		uint256 pointsAccrued;
+		bool userVoted;
+	}
+
+	struct QuestionView {
+		string title;
+		string description;
+		uint256 deadline;
+		uint256 totalVoteCount;
+		OptionView[] options;
 	}
 
 	// State variables
@@ -55,7 +74,7 @@ abstract contract Question is Ownable {
 		points = IERC20(_pointsAddress);
 
 		// Add an empty option at index 0
-		options.push(Option("", ""));
+		options.push(Option("", "", msg.sender));
 	}
 
 	// External functions
@@ -79,9 +98,11 @@ abstract contract Question is Ownable {
 		return options[optionId];
 	}
 
-	function getOptionVoteCount(uint256 optionId) external view virtual returns (uint256);
+	function getOptionVoteCount(uint256 optionId) internal view virtual returns (uint256);
 
-	function getOptionPointsAccrued(uint256 optionId) external view virtual returns (uint256);
+	function getOptionPointsAccrued(uint256 optionId) internal view virtual returns (uint256);
+
+	function hasVoted(address voter, uint256 optionId) internal view virtual returns (bool);
 
 	// External functions (onlyOwner)
 	function updateTitle(string memory _title) external onlyOwner {
@@ -106,7 +127,7 @@ abstract contract Question is Ownable {
 
 	function _addOption(string memory _title, string memory _description) internal virtual {
 		uint256 optionId = options.length;
-		options.push(Option(_title, _description));
+		options.push(Option(_title, _description, msg.sender));
 		emit NewOption(msg.sender, optionId, _title);
 	}
 
@@ -116,5 +137,33 @@ abstract contract Question is Ownable {
 		} else {
 			return Status.Ended;
 		}
+	}
+
+	// New function to get question view
+	function getQuestionView(address user) external view virtual returns (QuestionView memory) {
+		uint256 totalVotes = 0;
+		OptionView[] memory optionViews = new OptionView[](options.length);
+
+		for (uint256 i = 0; i < options.length; i++) {
+			uint256 voteCount = getOptionVoteCount(i);
+			totalVotes += voteCount;
+			optionViews[i] = OptionView({
+				title: options[i].title,
+				description: options[i].description,
+				proposer: options[i].proposer,
+				voteCount: voteCount,
+				pointsAccrued: getOptionPointsAccrued(i),
+				userVoted: hasVoted(user, i)
+			});
+		}
+
+		return
+			QuestionView({
+				title: title,
+				description: description,
+				deadline: deadline,
+				totalVoteCount: totalVotes,
+				options: optionViews
+			});
 	}
 }

@@ -2,17 +2,15 @@
 pragma solidity ^0.8.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IPoints, IERC20Metadata, IERC20 } from "./interfaces/IPoints.sol";
 
 /// @title Points - A non-transferable ERC20-like token contract
 /// @notice This contract implements a non-transferable token system
 /// @dev This is an abstract contract that needs to be inherited and implemented
-abstract contract Points is IERC20 {
+abstract contract Points is IPoints {
 	string private _name;
 	string private _symbol;
 	uint8 private _decimals;
-
-	/// @notice Error thrown when attempting to transfer tokens
-	error NonTransferable();
 
 	/// @notice Initializes the contract with a name, symbol, and decimals
 	/// @param tokenName The name of the token
@@ -24,49 +22,77 @@ abstract contract Points is IERC20 {
 		_decimals = tokenDecimals;
 	}
 
-	/// @notice Transfer is not supported for this non-transferable token
-	/// @dev Always reverts with NonTransferable error
-	/// @return bool This function always reverts and never returns
-	function transfer(address, uint256) public pure override returns (bool) {
+	/// @dev Internal function to calculate balance at a specific timestamp
+	/// @param user The address of the user
+	/// @param timestamp The timestamp at which to check the balance
+	/// @return The balance of the user at the given timestamp
+	function _balanceAtTimestamp(
+		address user,
+		uint256 timestamp
+	) internal view virtual returns (uint256);
+
+	/// @inheritdoc IPoints
+	function balanceAtTimestamp(
+		address user,
+		uint256 timestamp
+	) public view virtual override returns (uint256) {
+		return _balanceAtTimestamp(user, timestamp);
+	}
+
+	/// @inheritdoc IERC20
+	function balanceOf(address user) public view virtual override returns (uint256) {
+		return _balanceAtTimestamp(user, block.timestamp);
+	}
+
+	/// @dev Internal function to calculate total supply at a specific timestamp
+	/// @param timestamp The timestamp at which to check the total supply
+	/// @return The total supply at the given timestamp
+	function _totalSupplyAtTimestamp(uint256 timestamp) internal view virtual returns (uint256);
+
+	/// @inheritdoc IPoints
+	function totalSupplyAtTimestamp(
+		uint256 timestamp
+	) public view virtual override returns (uint256) {
+		return _totalSupplyAtTimestamp(timestamp);
+	}
+
+	/// @inheritdoc IERC20
+	function totalSupply() public view virtual override returns (uint256) {
+		return totalSupplyAtTimestamp(block.timestamp);
+	}
+
+	/// @inheritdoc IERC20
+	function transfer(address, uint256) public pure virtual override returns (bool) {
 		revert NonTransferable();
 	}
 
-	/// @notice No allowances are permitted for this non-transferable token
-	/// @return uint256 Always returns 0
-	// solhint-disable-next-line func-visibility
-	function allowance(address, address) public view override returns (uint256) {
+	/// @inheritdoc IERC20
+	function allowance(address, address) public view virtual override returns (uint256) {
 		return 0;
 	}
 
-	/// @notice Approve is not supported for this non-transferable token
-	/// @dev Always reverts with NonTransferable error
-	/// @return bool This function always reverts and never returns
-	function approve(address, uint256) public pure override returns (bool) {
+	/// @inheritdoc IERC20
+	function approve(address, uint256) public pure virtual override returns (bool) {
 		revert NonTransferable();
 	}
 
-	/// @notice TransferFrom is not supported for this non-transferable token
-	/// @dev Always reverts with NonTransferable error
-	/// @return bool This function always reverts and never returns
-	function transferFrom(address, address, uint256) public pure override returns (bool) {
+	/// @inheritdoc IERC20
+	function transferFrom(address, address, uint256) public pure virtual override returns (bool) {
 		revert NonTransferable();
 	}
 
-	/// @notice Returns the name of the token
-	/// @return string The name of the token
-	function name() public view returns (string memory) {
+	/// @inheritdoc IERC20Metadata
+	function name() public view virtual override returns (string memory) {
 		return _name;
 	}
 
-	/// @notice Returns the symbol of the token
-	/// @return string The symbol of the token
-	function symbol() public view returns (string memory) {
+	/// @inheritdoc IERC20Metadata
+	function symbol() public view virtual override returns (string memory) {
 		return _symbol;
 	}
 
-	/// @notice Returns the number of decimals the token uses
-	/// @return uint8 The number of decimals
-	function decimals() public view returns (uint8) {
+	/// @inheritdoc IERC20Metadata
+	function decimals() public view virtual override returns (uint8) {
 		return _decimals;
 	}
 }

@@ -59,4 +59,4 @@ enum QuestionType {
 }
 ```
 
-More details about the `OptionView` struct can be found in the `IQuestion.sol` interface.
+More details can be found in the `IQuestion.sol` interface.

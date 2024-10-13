@@ -7,6 +7,8 @@ Plasa Protocol is a decentralized platform that implements a unique system of St
 - [Plasa Protocol](#plasa-protocol)
   - [Table of Contents](#table-of-contents)
 - [Protocol](#protocol)
+  - [Spaces](#spaces)
+    - [Space Components](#space-components)
   - [Stamps](#stamps)
     - [Account Ownership Stamp](#account-ownership-stamp)
     - [Follower Since Stamp](#follower-since-stamp)
@@ -18,12 +20,28 @@ Plasa Protocol is a decentralized platform that implements a unique system of St
     - [Open Question](#open-question)
   - [Smart Contracts](#smart-contracts)
 - [Queries](#queries)
-  - [Space](#space)
-  - [Question](#question)
+  - [Spaces](#spaces-1)
+  - [Questions](#questions-1)
 
 # Protocol
 
 Plasa Protocol is a decentralized platform that implements a unique system of Stamps, Points, and Questions for community engagement and governance.
+
+## Spaces
+
+Spaces represent communities, organizations, or leaders using Plasa for their community engagement and governance. Each Space manages its own follower stamps, points, and questions.
+
+Key features:
+
+- Deploys and manages Follower Since Stamps and Follower Since Points
+- Creates and manages Fixed and Open Questions
+- Customizable space information (name, description, image URL)
+
+### Space Components
+
+- **Stamps**: Represents a user's follower status since a specific date on a platform.
+- **Points**: Calculates points based on how long a user has been a follower.
+- **Questions**: Both Fixed and Open questions for community voting and governance.
 
 ## Stamps
 
@@ -110,15 +128,16 @@ Key features:
 
 The Plasa Protocol is implemented using several Solidity smart contracts:
 
-1. `Stamp.sol`: Base contract for non-transferable ERC721 tokens (stamps).
-2. `AccountOwnershipStamp.sol`: Implementation of the Account Ownership Stamp.
-3. `FollowerSinceStamp.sol`: Implementation of the Follower Since Stamp.
-4. `Points.sol`: Base contract for non-transferable ERC20-like tokens (points).
-5. `FollowerSincePoints.sol`: Implementation of the Follower Since Points system.
-6. `MultipleFollowerSincePoints.sol`: Implementation of the Multiple Follower Since Points system.
-7. `Question.sol`: Base contract for voting questions.
-8. `OpenQuestion.sol`: Implementation of the Open Question type.
-9. `FixedQuestion.sol`: Implementation of the Fixed Question type (not shown in the provided code snippets).
+1. `Space.sol`: Main contract for managing a space, including follower stamps, points, and questions.
+2. `Stamp.sol`: Base contract for non-transferable ERC721 tokens (stamps).
+3. `AccountOwnershipStamp.sol`: Implementation of the Account Ownership Stamp.
+4. `FollowerSinceStamp.sol`: Implementation of the Follower Since Stamp.
+5. `Points.sol`: Base contract for non-transferable ERC20-like tokens (points).
+6. `FollowerSincePoints.sol`: Implementation of the Follower Since Points system.
+7. `MultipleFollowerSincePoints.sol`: Implementation of the Multiple Follower Since Points system.
+8. `Question.sol`: Base contract for voting questions.
+9. `OpenQuestion.sol`: Implementation of the Open Question type.
+10. `FixedQuestion.sol`: Implementation of the Fixed Question type.
 
 These contracts work together to create a comprehensive system for community engagement, reputation tracking, and decentralized decision-making.
 
@@ -128,11 +147,11 @@ For detailed information on each contract and its functions, please refer to the
 
 The Plasa Protocol provides various ways to query data from the smart contracts. Here are some common queries and how to perform them:
 
-## Space
+## Spaces
 
 // Add information about querying space here
 
-## Question
+## Questions
 
 Each question contract has a `getQuestionView(address user)` function that returns a `QuestionView` struct. This struct contains all the information about the question and the user's voting status.
 It includes an array of `OptionView` structs, which contain information about each option.

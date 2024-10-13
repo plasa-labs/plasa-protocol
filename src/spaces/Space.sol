@@ -53,7 +53,7 @@ contract Space is ISpace, Ownable {
 		// Deploy FollowerSincePoints contract
 		string memory pointsName = string(abi.encodePacked(_spaceName, " Points"));
 		followerPoints = IFollowerSincePoints(
-			address(new FollowerSincePoints(address(followerStamp), pointsName, "FP"))
+			address(new FollowerSincePoints(address(followerStamp), pointsName, "POINT"))
 		);
 		emit FollowerPointsDeployed(address(followerPoints));
 	}

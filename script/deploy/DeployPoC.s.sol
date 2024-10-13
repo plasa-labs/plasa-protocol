@@ -42,6 +42,7 @@ contract DeployPoC is Script {
 		console.log("DEPLOYMENT_LOG_START");
 		console.log("{");
 		console.log('  "DeployerAddress": "%s",', deployer);
+		console.log('  "ChainId": %d,', block.chainid);
 		console.log('  "Contracts": [');
 		console.log("    {");
 		console.log('      "Space": {');

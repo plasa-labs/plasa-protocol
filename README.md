@@ -137,14 +137,12 @@ The Plasa Protocol provides various ways to query data from the smart contracts.
 Each question contract has a `getQuestionView(address user)` function that returns a `QuestionView` struct. This struct contains all the information about the question and the user's voting status.
 It includes an array of `OptionView` structs, which contain information about each option.
 
-https://github.com/plasa-labs/plasa-protocol/blob/02cbf02bf1651283b0fc9f940dc0f0058d863313/src/voting/interfaces/IQuestion.sol#L132-L135
+https://github.com/plasa-labs/plasa-protocol/blob/19eaa4278396f2bce96472d789483559caf21d59/src/voting/interfaces/IQuestion.sol#L124-L127
 
-https://github.com/plasa-labs/plasa-protocol/blob/02cbf02bf1651283b0fc9f940dc0f0058d863313/src/voting/interfaces/IQuestion.sol#L33-L48
+https://github.com/plasa-labs/plasa-protocol/blob/19eaa4278396f2bce96472d789483559caf21d59/src/voting/interfaces/IQuestion.sol#L25-L40
 
-https://github.com/plasa-labs/plasa-protocol/blob/02cbf02bf1651283b0fc9f940dc0f0058d863313/src/voting/interfaces/IQuestion.sol#L50-L58
+https://github.com/plasa-labs/plasa-protocol/blob/19eaa4278396f2bce96472d789483559caf21d59/src/voting/interfaces/IQuestion.sol#L42-L50
 
-https://github.com/plasa-labs/plasa-protocol/blob/02cbf02bf1651283b0fc9f940dc0f0058d863313/src/voting/interfaces/IQuestion.sol#L6-L11
-
-https://github.com/plasa-labs/plasa-protocol/blob/02cbf02bf1651283b0fc9f940dc0f0058d863313/src/voting/interfaces/IQuestion.sol#L18-L23
+https://github.com/plasa-labs/plasa-protocol/blob/19eaa4278396f2bce96472d789483559caf21d59/src/voting/interfaces/IQuestion.sol#L10-L15
 
 More details can be found in the `IQuestion.sol` interface.

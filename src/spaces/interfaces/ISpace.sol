@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../../stamps/interfaces/IFollowerSinceStamp.sol";
-import "../../points/interfaces/IFollowerSincePoints.sol";
-import "../../voting/interfaces/IQuestion.sol";
+import { IQuestion, QuestionStatus } from "../../voting/interfaces/IQuestion.sol";
+import { IFollowerSinceStamp } from "../../stamps/interfaces/IFollowerSinceStamp.sol";
+import { IFollowerSincePoints } from "../../points/interfaces/IFollowerSincePoints.sol";
 
 /// @title ISpace
 /// @notice Interface for the Space contract, representing a community or organization using Plasa
@@ -109,4 +109,37 @@ interface ISpace {
 	/// @dev Only the owner can call this function
 	/// @param _spaceImageUrl The new image URL of the space
 	function updateSpaceImageUrl(string memory _spaceImageUrl) external;
+
+	struct StampView {
+		address addr;
+		string platform;
+		string followedAccount;
+		bool userHasStamp;
+	}
+
+	struct PointsView {
+		address addr;
+		uint256 userCurrentBalance;
+	}
+
+	struct QuestionPreview {
+		address addr;
+		string title;
+		string description;
+		uint256 deadline;
+		IQuestion.QuestionStatus status;
+		bool userHasVoted;
+	}
+
+	struct SpaceView {
+		string name;
+		string description;
+		string imageUrl;
+		address owner;
+		StampView stamp;
+		PointsView points;
+		QuestionPreview[] questions;
+	}
+
+	function getSpaceView(address user) external view returns (SpaceView memory);
 }

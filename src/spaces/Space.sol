@@ -19,19 +19,31 @@ contract Space is ISpace, Ownable {
 	IFollowerSincePoints public followerPoints;
 	IQuestion[] private questions;
 
-	/// @notice Initializes the PoCSpace contract
+	string public spaceName;
+	string public spaceDescription;
+	string public spaceImageUrl;
+
+	/// @notice Initializes the Space contract
 	/// @param initialOwner The address that will own this space
 	/// @param stampSigner The address authorized to sign mint requests for follower stamps
 	/// @param platform The platform name (e.g., "Instagram", "Twitter")
 	/// @param followed The account being followed
-	/// @param spaceName The name of the space
+	/// @param _spaceName The name of the space
+	/// @param _spaceDescription The description of the space
+	/// @param _spaceImageUrl The URL of the space's image
 	constructor(
 		address initialOwner,
 		address stampSigner,
 		string memory platform,
 		string memory followed,
-		string memory spaceName
+		string memory _spaceName,
+		string memory _spaceDescription,
+		string memory _spaceImageUrl
 	) Ownable(initialOwner) {
+		spaceName = _spaceName;
+		spaceDescription = _spaceDescription;
+		spaceImageUrl = _spaceImageUrl;
+
 		// Deploy FollowerSinceStamp contract
 		followerStamp = IFollowerSinceStamp(
 			address(new FollowerSinceStamp(stampSigner, platform, followed))
@@ -39,7 +51,7 @@ contract Space is ISpace, Ownable {
 		emit FollowerStampDeployed(address(followerStamp));
 
 		// Deploy FollowerSincePoints contract
-		string memory pointsName = string(abi.encodePacked(spaceName, " Points"));
+		string memory pointsName = string(abi.encodePacked(_spaceName, " Points"));
 		followerPoints = IFollowerSincePoints(
 			address(new FollowerSincePoints(address(followerStamp), pointsName, "FP"))
 		);
@@ -48,16 +60,16 @@ contract Space is ISpace, Ownable {
 
 	/// @inheritdoc ISpace
 	function deployFixedQuestion(
-		string memory title,
-		string memory description,
+		string memory questionTitle,
+		string memory questionDescription,
 		uint256 deadline,
 		string[] memory initialOptionTitles,
 		string[] memory initialOptionDescriptions
 	) external onlyOwner returns (address) {
 		FixedQuestion newQuestion = new FixedQuestion(
 			owner(),
-			title,
-			description,
+			questionTitle,
+			questionDescription,
 			deadline,
 			address(followerPoints),
 			initialOptionTitles,
@@ -70,15 +82,15 @@ contract Space is ISpace, Ownable {
 
 	/// @inheritdoc ISpace
 	function deployOpenQuestion(
-		string memory title,
-		string memory description,
+		string memory questionTitle,
+		string memory questionDescription,
 		uint256 deadline,
 		uint256 minPointsToAddOption
 	) external onlyOwner returns (address) {
 		OpenQuestion newQuestion = new OpenQuestion(
 			owner(),
-			title,
-			description,
+			questionTitle,
+			questionDescription,
 			deadline,
 			address(followerPoints),
 			minPointsToAddOption

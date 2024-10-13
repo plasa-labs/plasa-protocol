@@ -18,6 +18,18 @@ interface ISpace {
 	/// @return The IFollowerSincePoints interface of the associated points contract
 	function followerPoints() external view returns (IFollowerSincePoints);
 
+	/// @notice Returns the name of the space
+	/// @return The name of the space
+	function spaceName() external view returns (string memory);
+
+	/// @notice Returns the description of the space
+	/// @return The description of the space
+	function spaceDescription() external view returns (string memory);
+
+	/// @notice Returns the image URL of the space
+	/// @return The image URL of the space
+	function spaceImageUrl() external view returns (string memory);
+
 	// Events
 	/// @notice Emitted when a new FollowerSinceStamp contract is deployed
 	/// @param stampAddress The address of the newly deployed FollowerSinceStamp contract
@@ -35,15 +47,15 @@ interface ISpace {
 	// Public functions
 	/// @notice Deploys a new fixed question
 	/// @dev Only the owner can call this function
-	/// @param title The title of the question
-	/// @param description The description of the question
+	/// @param questionTitle The title of the question
+	/// @param questionDescription The description of the question
 	/// @param deadline The deadline for voting
 	/// @param initialOptionTitles The titles of the initial options
 	/// @param initialOptionDescriptions The descriptions of the initial options
 	/// @return The address of the newly deployed question contract
 	function deployFixedQuestion(
-		string memory title,
-		string memory description,
+		string memory questionTitle,
+		string memory questionDescription,
 		uint256 deadline,
 		string[] memory initialOptionTitles,
 		string[] memory initialOptionDescriptions
@@ -51,14 +63,14 @@ interface ISpace {
 
 	/// @notice Deploys a new open question
 	/// @dev Only the owner can call this function
-	/// @param title The title of the question
-	/// @param description The description of the question
+	/// @param questionTitle The title of the question
+	/// @param questionDescription The description of the question
 	/// @param deadline The deadline for voting
 	/// @param minPointsToAddOption The minimum points required to add an option
 	/// @return The address of the newly deployed question contract
 	function deployOpenQuestion(
-		string memory title,
-		string memory description,
+		string memory questionTitle,
+		string memory questionDescription,
 		uint256 deadline,
 		uint256 minPointsToAddOption
 	) external returns (address);

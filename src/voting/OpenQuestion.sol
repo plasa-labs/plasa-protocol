@@ -64,7 +64,7 @@ contract OpenQuestion is Question, IOpenQuestion {
 	/// @dev Returns true if the user has voted for the option, false otherwise
 	/// @param voter The address of the user
 	/// @param optionId The ID of the option
-	function hasVoted(
+	function hasVotedOption(
 		address voter,
 		uint256 optionId
 	) public view override(IQuestion, Question) returns (bool) {

@@ -22,6 +22,12 @@ Plasa Protocol is a decentralized platform that implements a unique system of St
 - [Queries](#queries)
   - [Spaces](#spaces-1)
   - [Questions](#questions-1)
+- [Write](#write)
+  - [FollowerSinceStamp](#followersincestamp)
+    - [`mintStamp`](#mintstamp)
+  - [Questions](#questions-2)
+    - [`vote`](#vote)
+    - [`addOption` (OpenQuestion only)](#addoption-openquestion-only)
 
 # Protocol
 
@@ -151,6 +157,10 @@ The Plasa Protocol provides various ways to query data from the smart contracts.
 
 Each space contract has a `getSpaceView()` function that returns a `SpaceView` struct. This struct contains all the information about the space.
 
+https://github.com/plasa-labs/plasa-protocol/blob/d55d048575913d7c66fe939f675418b55f126ee1/src/spaces/interfaces/ISpace.sol#L153-L156
+
+https://github.com/plasa-labs/plasa-protocol/blob/d55d048575913d7c66fe939f675418b55f126ee1/src/spaces/interfaces/ISpace.sol#L14-L47
+
 ## Questions
 
 Each question contract has a `getQuestionView(address user)` function that returns a `QuestionView` struct. This struct contains all the information about the question and the user's voting status.
@@ -165,3 +175,21 @@ https://github.com/plasa-labs/plasa-protocol/blob/19eaa4278396f2bce96472d7894835
 https://github.com/plasa-labs/plasa-protocol/blob/19eaa4278396f2bce96472d789483559caf21d59/src/voting/interfaces/IQuestion.sol#L10-L15
 
 More details can be found in the `IQuestion.sol` interface.
+
+# Write
+
+## FollowerSinceStamp
+
+### `mintStamp`
+
+https://github.com/plasa-labs/plasa-protocol/blob/d55d048575913d7c66fe939f675418b55f126ee1/src/stamps/interfaces/IFollowerSinceStamp.sol#L34-L46
+
+## Questions
+
+### `vote`
+
+https://github.com/plasa-labs/plasa-protocol/blob/d55d048575913d7c66fe939f675418b55f126ee1/src/voting/interfaces/IQuestion.sol#L98-L101
+
+### `addOption` (OpenQuestion only)
+
+https://github.com/plasa-labs/plasa-protocol/blob/d55d048575913d7c66fe939f675418b55f126ee1/src/voting/interfaces/IOpenQuestion.sol#L25-L29

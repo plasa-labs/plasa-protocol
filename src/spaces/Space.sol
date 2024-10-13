@@ -109,4 +109,22 @@ contract Space is ISpace, Ownable {
 	function getQuestionCount() external view returns (uint256) {
 		return questions.length;
 	}
+
+	/// @inheritdoc ISpace
+	function updateSpaceName(string memory _spaceName) external onlyOwner {
+		spaceName = _spaceName;
+		emit SpaceNameUpdated(_spaceName);
+	}
+
+	/// @inheritdoc ISpace
+	function updateSpaceDescription(string memory _spaceDescription) external onlyOwner {
+		spaceDescription = _spaceDescription;
+		emit SpaceDescriptionUpdated(_spaceDescription);
+	}
+
+	/// @inheritdoc ISpace
+	function updateSpaceImageUrl(string memory _spaceImageUrl) external onlyOwner {
+		spaceImageUrl = _spaceImageUrl;
+		emit SpaceImageUrlUpdated(_spaceImageUrl);
+	}
 }

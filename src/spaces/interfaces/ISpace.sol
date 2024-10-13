@@ -44,6 +44,18 @@ interface ISpace {
 	/// @param questionType The type of the question (Fixed or Open)
 	event QuestionDeployed(address questionAddress, IQuestion.QuestionType questionType);
 
+	/// @notice Emitted when the space name is updated
+	/// @param newName The new name of the space
+	event SpaceNameUpdated(string newName);
+
+	/// @notice Emitted when the space description is updated
+	/// @param newDescription The new description of the space
+	event SpaceDescriptionUpdated(string newDescription);
+
+	/// @notice Emitted when the space image URL is updated
+	/// @param newImageUrl The new image URL of the space
+	event SpaceImageUrlUpdated(string newImageUrl);
+
 	// Public functions
 	/// @notice Deploys a new fixed question
 	/// @dev Only the owner can call this function
@@ -82,4 +94,19 @@ interface ISpace {
 	/// @notice Gets the total number of deployed questions
 	/// @return The number of deployed questions
 	function getQuestionCount() external view returns (uint256);
+
+	/// @notice Updates the name of the space
+	/// @dev Only the owner can call this function
+	/// @param _spaceName The new name of the space
+	function updateSpaceName(string memory _spaceName) external;
+
+	/// @notice Updates the description of the space
+	/// @dev Only the owner can call this function
+	/// @param _spaceDescription The new description of the space
+	function updateSpaceDescription(string memory _spaceDescription) external;
+
+	/// @notice Updates the image URL of the space
+	/// @dev Only the owner can call this function
+	/// @param _spaceImageUrl The new image URL of the space
+	function updateSpaceImageUrl(string memory _spaceImageUrl) external;
 }

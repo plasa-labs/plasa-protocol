@@ -35,10 +35,6 @@ contract OpenQuestion is Question, IOpenQuestion {
 	}
 
 	/// @inheritdoc IOpenQuestion
-	/// @notice Adds a new option to the question
-	/// @dev Checks if the user has sufficient points to add the option
-	/// @param _title The title of the new option
-	/// @param _description The description of the new option
 	function addOption(
 		string memory _title,
 		string memory _description
@@ -60,10 +56,6 @@ contract OpenQuestion is Question, IOpenQuestion {
 	}
 
 	/// @inheritdoc IQuestion
-	/// @notice Checks if a user has voted for a specific option
-	/// @dev Returns true if the user has voted for the option, false otherwise
-	/// @param voter The address of the user
-	/// @param optionId The ID of the option
 	function hasVotedOption(
 		address voter,
 		uint256 optionId
@@ -72,9 +64,6 @@ contract OpenQuestion is Question, IOpenQuestion {
 	}
 
 	/// @inheritdoc IOpenQuestion
-	/// @notice Updates the minimum points required to add a new option
-	/// @dev Only callable by the owner
-	/// @param _minPointsToAddOption The new minimum points required
 	function updateMinPointsToAddOption(uint256 _minPointsToAddOption) external override onlyOwner {
 		minPointsToAddOption = _minPointsToAddOption;
 		emit MinPointsToAddOptionUpdated(_minPointsToAddOption);

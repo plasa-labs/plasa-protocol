@@ -17,6 +17,9 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	/// @inheritdoc IFollowerSinceStamp
 	mapping(uint256 stampId => uint256 timestamp) public override followStartTimestamp;
 
+	/// @notice Mapping to track if a follower has already minted a stamp
+	mapping(string => bool) public hasFollowerMinted;
+
 	/// @notice Initializes the FollowerSinceStamp contract
 	/// @param _signer The address authorized to sign mint requests
 	/// @param _platform The platform where the following relationship exists
@@ -39,6 +42,7 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	) external override returns (uint256) {
 		if (msg.sender == address(0)) revert InvalidRecipient();
 		if (bytes(follower).length == 0) revert InvalidFollower();
+		if (hasFollowerMinted[follower]) revert FollowerAlreadyMinted();
 
 		bytes memory encodedData = abi.encode(
 			PLATFORM,
@@ -53,6 +57,9 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 
 		// Store the "since" timestamp for the stamp
 		followStartTimestamp[stampId] = since;
+
+		// Mark the follower as having minted a stamp
+		hasFollowerMinted[follower] = true;
 
 		emit FollowerSince(PLATFORM, FOLLOWED, follower, since, stampId, msg.sender);
 

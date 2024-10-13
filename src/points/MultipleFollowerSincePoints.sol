@@ -11,6 +11,7 @@ import { IMultipleFollowerSincePoints } from "./interfaces/IMultipleFollowerSinc
 /// @dev Inherits from Points and implements IMultipleFollowerSincePoints, using multiple IFollowerSinceStamp for duration calculation
 contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	StampInfo[] private _stamps;
+	uint256 private immutable _stampCount;
 
 	constructor(
 		address[] memory _stampAddresses,
@@ -19,9 +20,10 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		string memory _symbol
 	) Points(_name, _symbol, 18) {
 		if (_stampAddresses.length != _multipliers.length) revert ArrayLengthMismatch();
-		for (uint256 i = 0; i < _stampAddresses.length; i++) {
+		for (uint256 i = 0; i < _stampAddresses.length; ++i) {
 			_stamps.push(StampInfo(IFollowerSinceStamp(_stampAddresses[i]), _multipliers[i]));
 		}
+		_stampCount = _stampAddresses.length;
 	}
 
 	/// @inheritdoc IMultipleFollowerSincePoints
@@ -41,9 +43,8 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		uint256 timestamp
 	) internal view override returns (uint256) {
 		uint256 totalPoints;
-		uint256 stampCount = _stamps.length;
 
-		for (uint256 i; i < stampCount; ) {
+		for (uint256 i; i < _stampCount; ) {
 			totalPoints += _calculatePointsForStamp(_stamps[i], account, timestamp);
 			unchecked {
 				++i;
@@ -55,9 +56,8 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	/// @inheritdoc Points
 	function _totalSupplyAtTimestamp(uint256 timestamp) internal view override returns (uint256) {
 		uint256 totalPoints;
-		uint256 stampCount = _stamps.length;
 
-		for (uint256 i; i < stampCount; ) {
+		for (uint256 i; i < _stampCount; ) {
 			totalPoints += _calculateTotalPointsForStamp(_stamps[i], timestamp);
 			unchecked {
 				++i;
@@ -78,8 +78,7 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	) private view returns (uint256) {
 		uint256 followerSince = stampInfo.stamp.getFollowerSinceTimestamp(account);
 		if (followerSince != 0 && followerSince <= timestamp) {
-			uint256 points = _calculatePointsAtTimestamp(followerSince, timestamp);
-			return points * stampInfo.multiplier;
+			return _calculatePointsAtTimestamp(followerSince, timestamp) * stampInfo.multiplier;
 		}
 		return 0;
 	}
@@ -98,8 +97,9 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		for (uint256 j = 1; j <= stampTotalSupply; ) {
 			uint256 followerSince = stampInfo.stamp.followStartTimestamp(j);
 			if (followerSince != 0 && followerSince <= timestamp) {
-				uint256 points = _calculatePointsAtTimestamp(followerSince, timestamp);
-				totalPoints += points * stampInfo.multiplier;
+				totalPoints +=
+					_calculatePointsAtTimestamp(followerSince, timestamp) *
+					stampInfo.multiplier;
 			}
 			unchecked {
 				++j;
@@ -116,7 +116,9 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		uint256 followerSince,
 		uint256 timestamp
 	) private pure returns (uint256) {
-		uint256 durationInSeconds = timestamp - followerSince;
-		return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
+		unchecked {
+			uint256 durationInSeconds = timestamp - followerSince;
+			return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
+		}
 	}
 }

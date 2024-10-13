@@ -23,8 +23,8 @@ contract DeployPoCArgs is Script {
 			stampPlatform: "Instagram",
 			stampFollowed: "base_onchain",
 			spaceName: "Base",
-			spaceDescription: "The (un)official community space for Base Onchain followers",
-			spaceImageUrl: "https://example.com/base_onchain_logo.png"
+			spaceDescription: "The (un)official community space for Base Onchain community",
+			spaceImageUrl: "https://raw.githubusercontent.com/base-org/brand-kit/refs/heads/main/logo/in-product/Base_Network_Logo.png"
 		});
 
 		return args;

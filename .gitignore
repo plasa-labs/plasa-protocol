@@ -16,3 +16,7 @@ docs/
 deployment_log.json
 
 deployments/
+
+broadcast/
+
+.commands

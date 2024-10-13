@@ -43,7 +43,7 @@ contract DeployPoC is Script {
 		console.log("{");
 		console.log('  "DeployerAddress": "%s",', deployer);
 		console.log('  "ChainId": %d,', block.chainid);
-		console.log('  "CompilerVersion": "%s",', vm.envString("FOUNDRY_SOLC_VERSION"));
+		// console.log('  "CompilerVersion": "%s",', vm.envString("FOUNDRY_SOLC_VERSION"));
 		console.log('  "Contracts": [');
 		console.log("    {");
 		console.log('      "Space": {');

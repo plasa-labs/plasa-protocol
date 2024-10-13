@@ -11,9 +11,9 @@ import "../voting/OpenQuestion.sol";
 import "../stamps/FollowerSinceStamp.sol";
 import "../points/FollowerSincePoints.sol";
 
-/// @title Space
-/// @notice Represents a space, organization, or leader using Plasa for their community
-/// @dev This contract manages follower stamps, points, and questions for a community
+/// @title Space - A contract for managing community spaces in Plasa
+/// @notice This contract represents a space, organization, or leader using Plasa for their community
+/// @dev Implements ISpace interface and inherits from Ownable for access control
 contract Space is ISpace, Ownable {
 	IFollowerSinceStamp public followerStamp;
 	IFollowerSincePoints public followerPoints;
@@ -24,6 +24,7 @@ contract Space is ISpace, Ownable {
 	string public spaceImageUrl;
 
 	/// @notice Initializes the Space contract
+	/// @dev Deploys FollowerSinceStamp and FollowerSincePoints contracts
 	/// @param initialOwner The address that will own this space
 	/// @param stampSigner The address authorized to sign mint requests for follower stamps
 	/// @param platform The platform name (e.g., "Instagram", "Twitter")
@@ -128,9 +129,7 @@ contract Space is ISpace, Ownable {
 		emit SpaceImageUrlUpdated(_spaceImageUrl);
 	}
 
-	/// @notice Retrieves a comprehensive view of the space
-	/// @param user The address of the user querying the space view
-	/// @return A SpaceView struct containing all relevant space information
+	/// @inheritdoc ISpace
 	function getSpaceView(address user) external view override returns (SpaceView memory) {
 		QuestionPreview[] memory questionPreviews = new QuestionPreview[](questions.length);
 		for (uint i = 0; i < questions.length; i++) {

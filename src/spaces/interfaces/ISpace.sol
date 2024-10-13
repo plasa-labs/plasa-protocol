@@ -5,32 +5,49 @@ import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
 import { IFollowerSinceStamp } from "../../stamps/interfaces/IFollowerSinceStamp.sol";
 import { IFollowerSincePoints } from "../../points/interfaces/IFollowerSincePoints.sol";
 
-/// @title ISpace
-/// @notice Interface for the Space contract, representing a community or organization using Plasa
-/// @dev This interface defines the structure for managing follower stamps, points, and questions
+/// @title ISpace - Interface for managing community spaces in Plasa
+/// @notice This interface defines the structure for managing follower stamps, points, and questions within a space
+/// @dev Implement this interface to create a space contract that represents a community or organization using Plasa
 interface ISpace {
-	// Public variables
-	/// @notice Returns the FollowerSinceStamp contract associated with this space
-	/// @return The IFollowerSinceStamp interface of the associated stamp contract
-	function followerStamp() external view returns (IFollowerSinceStamp);
+	// Structs
 
-	/// @notice Returns the FollowerSincePoints contract associated with this space
-	/// @return The IFollowerSincePoints interface of the associated points contract
-	function followerPoints() external view returns (IFollowerSincePoints);
+	/// @notice Represents a comprehensive view of a space
+	struct SpaceView {
+		string name;
+		string description;
+		string imageUrl;
+		address owner;
+		StampView stamp;
+		PointsView points;
+		QuestionPreview[] questions;
+	}
 
-	/// @notice Returns the name of the space
-	/// @return The name of the space
-	function spaceName() external view returns (string memory);
+	/// @notice Represents a view of the follower stamp associated with the space
+	struct StampView {
+		address addr;
+		string platform;
+		string followedAccount;
+		bool userHasStamp;
+	}
 
-	/// @notice Returns the description of the space
-	/// @return The description of the space
-	function spaceDescription() external view returns (string memory);
+	/// @notice Represents a view of the points system associated with the space
+	struct PointsView {
+		address addr;
+		uint256 userCurrentBalance;
+	}
 
-	/// @notice Returns the image URL of the space
-	/// @return The image URL of the space
-	function spaceImageUrl() external view returns (string memory);
+	/// @notice Represents a preview of a question in the space
+	struct QuestionPreview {
+		address addr;
+		string title;
+		string description;
+		uint256 deadline;
+		bool isActive;
+		bool userHasVoted;
+	}
 
 	// Events
+
 	/// @notice Emitted when a new FollowerSinceStamp contract is deployed
 	/// @param stampAddress The address of the newly deployed FollowerSinceStamp contract
 	event FollowerStampDeployed(address stampAddress);
@@ -56,7 +73,8 @@ interface ISpace {
 	/// @param newImageUrl The new image URL of the space
 	event SpaceImageUrlUpdated(string newImageUrl);
 
-	// Public functions
+	// External Functions
+
 	/// @notice Deploys a new fixed question
 	/// @dev Only the owner can call this function
 	/// @param questionTitle The title of the question
@@ -87,14 +105,6 @@ interface ISpace {
 		uint256 minPointsToAddOption
 	) external returns (address);
 
-	/// @notice Gets all deployed questions
-	/// @return An array of IQuestion interfaces representing all deployed questions
-	function getQuestions() external view returns (IQuestion[] memory);
-
-	/// @notice Gets the total number of deployed questions
-	/// @return The number of deployed questions
-	function getQuestionCount() external view returns (uint256);
-
 	/// @notice Updates the name of the space
 	/// @dev Only the owner can call this function
 	/// @param _spaceName The new name of the space
@@ -110,35 +120,38 @@ interface ISpace {
 	/// @param _spaceImageUrl The new image URL of the space
 	function updateSpaceImageUrl(string memory _spaceImageUrl) external;
 
-	struct SpaceView {
-		string name;
-		string description;
-		string imageUrl;
-		address owner;
-		StampView stamp;
-		PointsView points;
-		QuestionPreview[] questions;
-	}
-	struct StampView {
-		address addr;
-		string platform;
-		string followedAccount;
-		bool userHasStamp;
-	}
+	// External View Functions
 
-	struct PointsView {
-		address addr;
-		uint256 userCurrentBalance;
-	}
+	/// @notice Returns the FollowerSinceStamp contract associated with this space
+	/// @return The IFollowerSinceStamp interface of the associated stamp contract
+	function followerStamp() external view returns (IFollowerSinceStamp);
 
-	struct QuestionPreview {
-		address addr;
-		string title;
-		string description;
-		uint256 deadline;
-		bool isActive;
-		bool userHasVoted;
-	}
+	/// @notice Returns the FollowerSincePoints contract associated with this space
+	/// @return The IFollowerSincePoints interface of the associated points contract
+	function followerPoints() external view returns (IFollowerSincePoints);
 
+	/// @notice Returns the name of the space
+	/// @return The name of the space
+	function spaceName() external view returns (string memory);
+
+	/// @notice Returns the description of the space
+	/// @return The description of the space
+	function spaceDescription() external view returns (string memory);
+
+	/// @notice Returns the image URL of the space
+	/// @return The image URL of the space
+	function spaceImageUrl() external view returns (string memory);
+
+	/// @notice Gets all deployed questions
+	/// @return An array of IQuestion interfaces representing all deployed questions
+	function getQuestions() external view returns (IQuestion[] memory);
+
+	/// @notice Gets the total number of deployed questions
+	/// @return The number of deployed questions
+	function getQuestionCount() external view returns (uint256);
+
+	/// @notice Gets a comprehensive view of the space for a given user
+	/// @param user The address of the user to get the view for
+	/// @return A SpaceView struct containing all relevant information about the space
 	function getSpaceView(address user) external view returns (SpaceView memory);
 }

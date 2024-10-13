@@ -16,7 +16,7 @@ abstract contract Question is Ownable, IQuestion {
 	uint256 public deadline;
 	IPoints public immutable points;
 	Option[] private options;
-	QuestionType public immutable questionType;
+	QuestionType public questionType;
 
 	// Mapping to store vote counts for each option
 	mapping(uint256 optionId => uint256 count) public optionVoteCounts;

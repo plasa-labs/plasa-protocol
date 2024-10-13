@@ -43,11 +43,14 @@ contract DeployPoC is Script {
 		console.log("{");
 		console.log('  "DeployerAddress": "%s",', deployer);
 		console.log('  "ChainId": %d,', block.chainid);
+		console.log('  "CompilerVersion": "%s",', vm.envString("FOUNDRY_SOLC_VERSION"));
 		console.log('  "Contracts": [');
 		console.log("    {");
 		console.log('      "Space": {');
 		console.log('        "address": "%s",', address(space));
 		console.log('        "deployer": "%s",', deployer);
+		console.log('        "contractName": "Space",');
+		console.log('        "sourcePath": "src/spaces/Space.sol",');
 		console.log('        "arguments": {');
 		console.log('          "spaceOwner": "%s",', args.spaceOwner);
 		console.log('          "stampSigner": "%s",', args.stampSigner);
@@ -63,6 +66,8 @@ contract DeployPoC is Script {
 		console.log('      "FollowerSinceStamp": {');
 		console.log('        "address": "%s",', address(stamp));
 		console.log('        "deployer": "%s",', address(space));
+		console.log('        "contractName": "FollowerSinceStamp",');
+		console.log('        "sourcePath": "src/stamps/FollowerSinceStamp.sol",');
 		console.log('        "arguments": {');
 		console.log('          "signer": "%s",', args.stampSigner);
 		console.log('          "platform": "%s",', stamp.PLATFORM());
@@ -74,6 +79,8 @@ contract DeployPoC is Script {
 		console.log('      "FollowerSincePoints": {');
 		console.log('        "address": "%s",', address(points));
 		console.log('        "deployer": "%s",', address(space));
+		console.log('        "contractName": "FollowerSincePoints",');
+		console.log('        "sourcePath": "src/points/FollowerSincePoints.sol",');
 		console.log('        "arguments": {');
 		console.log('          "followerStamp": "%s",', address(stamp));
 		console.log('          "name": "%s",', points.name());

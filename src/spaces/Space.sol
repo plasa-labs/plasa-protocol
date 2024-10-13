@@ -140,7 +140,7 @@ contract Space is ISpace, Ownable {
 				title: question.title(),
 				description: question.description(),
 				deadline: question.deadline(),
-				status: question.getStatus(),
+				isActive: question.isActive(),
 				userHasVoted: question.hasVoted(user)
 			});
 		}

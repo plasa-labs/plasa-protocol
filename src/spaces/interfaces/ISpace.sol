@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { IQuestion, QuestionStatus } from "../../voting/interfaces/IQuestion.sol";
+import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
 import { IFollowerSinceStamp } from "../../stamps/interfaces/IFollowerSinceStamp.sol";
 import { IFollowerSincePoints } from "../../points/interfaces/IFollowerSincePoints.sol";
 
@@ -136,7 +136,7 @@ interface ISpace {
 		string title;
 		string description;
 		uint256 deadline;
-		QuestionStatus status;
+		bool isActive;
 		bool userHasVoted;
 	}
 

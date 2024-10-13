@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { IQuestion } from "./interfaces/IQuestion.sol";
+import { IQuestion, QuestionStatus } from "./interfaces/IQuestion.sol";
 import { IPoints } from "../points/interfaces/IPoints.sol";
 
 /// @title Abstract Question Contract for Voting System
@@ -22,6 +22,12 @@ abstract contract Question is Ownable, IQuestion {
 	mapping(uint256 optionId => uint256 count) public optionVoteCounts;
 	// Mapping to store points accrued for each option
 	mapping(uint256 optionId => uint256 points) public optionPointsAccrued;
+
+	/// @dev Modifier to check if the voting is still active
+	modifier whileActive() {
+		if (block.timestamp >= deadline) revert VotingEnded();
+		_;
+	}
 
 	/// @notice Constructor to initialize the question
 	/// @dev Sets up the initial state of the question
@@ -48,8 +54,7 @@ abstract contract Question is Ownable, IQuestion {
 	}
 
 	/// @inheritdoc IQuestion
-	function vote(uint256 optionId) external {
-		if (block.timestamp >= deadline) revert VotingEnded();
+	function vote(uint256 optionId) external whileActive {
 		if (optionId == 0 || optionId > options.length) revert InvalidOption();
 
 		_processVote(optionId);
@@ -152,11 +157,11 @@ abstract contract Question is Ownable, IQuestion {
 	}
 
 	/// @inheritdoc IQuestion
-	function getStatus() public view returns (Status) {
+	function getStatus() public view returns (QuestionStatus) {
 		if (block.timestamp < deadline) {
-			return Status.Active;
+			return QuestionStatus.Active;
 		} else {
-			return Status.Ended;
+			return QuestionStatus.Ended;
 		}
 	}
 

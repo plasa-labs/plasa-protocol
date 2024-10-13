@@ -3,16 +3,17 @@ pragma solidity ^0.8.20;
 
 import { IPoints } from "../../points/interfaces/IPoints.sol";
 
+/// @dev Represents the current status of a question
+enum QuestionStatus {
+	Null,
+	Active,
+	Ended
+}
+
 /// @title Question Interface for a Voting System
 /// @dev Interface for managing questions in a voting system with various options and views
 interface IQuestion {
 	// Enums
-	/// @dev Represents the current status of a question
-	enum Status {
-		Null,
-		Active,
-		Ended
-	}
 
 	/// @dev Defines the type of question
 	enum QuestionType {
@@ -37,7 +38,7 @@ interface IQuestion {
 		uint256 deadline; // The voting deadline, can be updated with Question.updateDeadline()
 		uint256 totalVoteCount; // The total number of votes across all options, calculated in Question.getQuestionView()
 		OptionView[] options; // Array of all voting options with their details, populated in Question.getQuestionView()
-		Status status; // The current status of the question (Active or Ended), determined by Question.getStatus()
+		QuestionStatus status; // The current status of the question (Null, Active, or Ended), determined by Question.getStatus()
 		address owner; // The owner of the question contract, set in the constructor and managed by Ownable
 		uint256 started; // The timestamp when the question was deployed, set in the Question constructor
 		uint256 userOptionVoted; // The option ID the user voted for (0 if not voted), set in Question.getQuestionView()
@@ -135,8 +136,8 @@ interface IQuestion {
 
 	// Public functions
 	/// @notice Get the current status of the question
-	/// @return The current Status of the question
-	function getStatus() external view returns (Status);
+	/// @return The current QuestionStatus of the question
+	function getStatus() external view returns (QuestionStatus);
 
 	/// @notice Check if a specific user has voted for a specific option
 	/// @param voter The address of the voter to check

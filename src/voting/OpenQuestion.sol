@@ -39,7 +39,10 @@ contract OpenQuestion is Question, IOpenQuestion {
 	/// @dev Checks if the user has sufficient points to add the option
 	/// @param _title The title of the new option
 	/// @param _description The description of the new option
-	function addOption(string memory _title, string memory _description) external override {
+	function addOption(
+		string memory _title,
+		string memory _description
+	) external override whileActive {
 		if (!canAddOption(msg.sender)) {
 			revert InsufficientPoints();
 		}

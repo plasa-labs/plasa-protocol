@@ -127,4 +127,41 @@ contract Space is ISpace, Ownable {
 		spaceImageUrl = _spaceImageUrl;
 		emit SpaceImageUrlUpdated(_spaceImageUrl);
 	}
+
+	/// @notice Retrieves a comprehensive view of the space
+	/// @param user The address of the user querying the space view
+	/// @return A SpaceView struct containing all relevant space information
+	function getSpaceView(address user) external view override returns (SpaceView memory) {
+		QuestionPreview[] memory questionPreviews = new QuestionPreview[](questions.length);
+		for (uint i = 0; i < questions.length; i++) {
+			IQuestion question = questions[i];
+			questionPreviews[i] = QuestionPreview({
+				addr: address(question),
+				title: question.title(),
+				description: question.description(),
+				deadline: question.deadline(),
+				status: question.getStatus(),
+				userHasVoted: question.hasVoted(user)
+			});
+		}
+
+		return
+			SpaceView({
+				name: spaceName,
+				description: spaceDescription,
+				imageUrl: spaceImageUrl,
+				owner: owner(),
+				stamp: StampView({
+					addr: address(followerStamp),
+					platform: followerStamp.getPlatform(),
+					followedAccount: followerStamp.getFollowed(),
+					userHasStamp: followerStamp.balanceOf(user) > 0
+				}),
+				points: PointsView({
+					addr: address(followerPoints),
+					userCurrentBalance: followerPoints.balanceOf(user)
+				}),
+				questions: questionPreviews
+			});
+	}
 }

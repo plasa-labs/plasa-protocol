@@ -110,6 +110,15 @@ interface ISpace {
 	/// @param _spaceImageUrl The new image URL of the space
 	function updateSpaceImageUrl(string memory _spaceImageUrl) external;
 
+	struct SpaceView {
+		string name;
+		string description;
+		string imageUrl;
+		address owner;
+		StampView stamp;
+		PointsView points;
+		QuestionPreview[] questions;
+	}
 	struct StampView {
 		address addr;
 		string platform;
@@ -127,18 +136,8 @@ interface ISpace {
 		string title;
 		string description;
 		uint256 deadline;
-		IQuestion.QuestionStatus status;
+		QuestionStatus status;
 		bool userHasVoted;
-	}
-
-	struct SpaceView {
-		string name;
-		string description;
-		string imageUrl;
-		address owner;
-		StampView stamp;
-		PointsView points;
-		QuestionPreview[] questions;
 	}
 
 	function getSpaceView(address user) external view returns (SpaceView memory);

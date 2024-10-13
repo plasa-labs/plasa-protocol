@@ -149,7 +149,7 @@ The Plasa Protocol provides various ways to query data from the smart contracts.
 
 ## Spaces
 
-// Add information about querying space here
+Each space contract has a `getSpaceView()` function that returns a `SpaceView` struct. This struct contains all the information about the space.
 
 ## Questions
 

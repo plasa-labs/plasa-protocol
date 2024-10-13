@@ -107,7 +107,7 @@ abstract contract Question is Ownable, IQuestion {
 		for (uint256 i = 1; i < options.length; i++) {
 			uint256 voteCount = optionVoteCounts[i];
 			totalVotes += voteCount;
-			bool userVotedForOption = hasVoted(user, i);
+			bool userVotedForOption = hasVotedOption(user, i);
 			// Adjust the index for optionViews to start at 0
 			optionViews[i - 1] = OptionView({
 				title: options[i].title,
@@ -166,7 +166,17 @@ abstract contract Question is Ownable, IQuestion {
 	}
 
 	/// @inheritdoc IQuestion
-	function hasVoted(address voter, uint256 optionId) public view virtual returns (bool);
+	function hasVotedOption(address voter, uint256 optionId) public view virtual returns (bool);
+
+	/// @inheritdoc IQuestion
+	function hasVoted(address voter) public view returns (bool) {
+		for (uint256 i = 1; i < options.length; i++) {
+			if (hasVotedOption(voter, i)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/// @dev Checks if a user can add an option
 	/// @param user The address of the user to check

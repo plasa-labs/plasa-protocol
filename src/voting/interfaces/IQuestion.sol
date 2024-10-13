@@ -143,7 +143,12 @@ interface IQuestion {
 	/// @param voter The address of the voter to check
 	/// @param optionId The ID of the option to check
 	/// @return True if the user has voted for the option, false otherwise
-	function hasVoted(address voter, uint256 optionId) external view returns (bool);
+	function hasVotedOption(address voter, uint256 optionId) external view returns (bool);
+
+	/// @notice Check if a specific user has voted for any option
+	/// @param voter The address of the voter to check
+	/// @return True if the user has voted for any option, false otherwise
+	function hasVoted(address voter) external view returns (bool);
 
 	/// @notice Get the deployment time of the question contract
 	/// @return The timestamp when the contract was deployed

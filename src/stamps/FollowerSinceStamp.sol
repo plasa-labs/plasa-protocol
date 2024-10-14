@@ -72,17 +72,16 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		stampView.platform = PLATFORM;
 		stampView.followedAccount = FOLLOWED;
 
-		try this.tokenOfOwnerByIndex(user, 0) returns (uint256 stampId) {
-			stampView.userHasStamp = true;
+		uint256 balance = balanceOf(user);
+		stampView.userHasStamp = balance > 0;
+
+		if (stampView.userHasStamp) {
+			uint256 stampId = tokenOfOwnerByIndex(user, 0);
 			stampView.userStampId = stampId;
 			stampView.userMintingDate = _mintDates[stampId];
 			stampView.userFollowerSince = followStartTimestamp[stampId];
 			stampView.timeSinceFollow = block.timestamp - stampView.userFollowerSince;
-		} catch {
-			stampView.userHasStamp = false;
 		}
-
-		return stampView;
 	}
 
 	/// @notice Generates a hash of the typed data for signature verification

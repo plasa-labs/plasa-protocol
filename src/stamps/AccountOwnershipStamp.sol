@@ -37,10 +37,10 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 		stampView.userHasStamp = balance > 0;
 
 		if (stampView.userHasStamp) {
-			uint256 userStampId = tokenOfOwnerByIndex(user, 0);
-			stampView.userStampId = tokenOfOwnerByIndex(user, 0);
-			stampView.userUsername = _tokenUsernames[userStampId];
-			stampView.userMintingDate = _mintDates[userStampId];
+			uint256 _userStampId = tokenOfOwnerByIndex(user, 0);
+			stampView.userStampId = _userStampId;
+			stampView.userUsername = _tokenUsernames[_userStampId];
+			stampView.userMintingDate = _mintDates[_userStampId];
 		}
 	}
 

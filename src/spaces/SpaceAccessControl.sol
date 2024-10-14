@@ -15,12 +15,32 @@ contract SpaceAccessControl is AccessControl, ISpaceAccessControl {
 	mapping(PermissionName => PermissionLevel) public override permissions;
 
 	/// @notice Constructor to set up initial roles
-	/// @param initialSuperAdmin The address to be granted the SUPER_ADMIN_ROLE
-	constructor(address initialSuperAdmin) {
-		_grantRole(SUPER_ADMIN_ROLE, initialSuperAdmin);
+	/// @param initialSuperAdmins An array of addresses to be granted the SUPER_ADMIN_ROLE
+	/// @param initialAdmins An array of addresses to be granted the ADMIN_ROLE
+	/// @param initialModerators An array of addresses to be granted the MODERATOR_ROLE
+	constructor(
+		address[] memory initialSuperAdmins,
+		address[] memory initialAdmins,
+		address[] memory initialModerators
+	) {
+		// Grant SUPER_ADMIN_ROLE to all addresses in initialSuperAdmins array
+		for (uint256 i = 0; i < initialSuperAdmins.length; i++) {
+			_grantRole(SUPER_ADMIN_ROLE, initialSuperAdmins[i]);
+		}
+
 		_setRoleAdmin(ADMIN_ROLE, SUPER_ADMIN_ROLE);
 		_setRoleAdmin(MODERATOR_ROLE, SUPER_ADMIN_ROLE);
 		_setRoleAdmin(MODERATOR_ROLE, ADMIN_ROLE);
+
+		// Grant ADMIN_ROLE to all addresses in initialAdmins array
+		for (uint256 i = 0; i < initialAdmins.length; i++) {
+			_grantRole(ADMIN_ROLE, initialAdmins[i]);
+		}
+
+		// Grant MODERATOR_ROLE to all addresses in initialModerators array
+		for (uint256 i = 0; i < initialModerators.length; i++) {
+			_grantRole(MODERATOR_ROLE, initialModerators[i]);
+		}
 	}
 
 	/// @inheritdoc ISpaceAccessControl

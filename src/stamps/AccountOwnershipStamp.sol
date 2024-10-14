@@ -19,10 +19,7 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 	/// @notice Initializes the contract with a signer and platform name
 	/// @param _signer The address authorized to sign mint requests
 	/// @param _platform The platform name for this stamp
-	constructor(
-		address _signer,
-		string memory _platform
-	) Stamp("Account Ownership Stamp", "AOS", "0.1.0", _signer) {
+	constructor(address _signer, string memory _platform) Stamp("Account Ownership Stamp", "AOS", "0.1.0", _signer) {
 		PLATFORM = _platform;
 	}
 
@@ -58,15 +55,15 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 	/// @param data The encoded data containing platform, username, recipient, and deadline
 	/// @return The keccak256 hash of the encoded data
 	function _getTypedDataHash(bytes memory data) internal pure override returns (bytes32) {
-		(string memory platform, string memory id, address recipient, uint256 deadline) = abi
-			.decode(data, (string, string, address, uint256));
+		(string memory platform, string memory id, address recipient, uint256 deadline) = abi.decode(
+			data,
+			(string, string, address, uint256)
+		);
 
 		return
 			keccak256(
 				abi.encode(
-					keccak256(
-						"AccountOwnership(string platform,string id,address recipient,uint256 deadline)"
-					),
+					keccak256("AccountOwnership(string platform,string id,address recipient,uint256 deadline)"),
 					keccak256(bytes(platform)),
 					keccak256(bytes(id)),
 					recipient,

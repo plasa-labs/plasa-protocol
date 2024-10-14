@@ -46,9 +46,7 @@ contract Space is ISpace, Ownable {
 		spaceImageUrl = _spaceImageUrl;
 
 		// Deploy FollowerSinceStamp contract
-		followerStamp = IFollowerSinceStamp(
-			address(new FollowerSinceStamp(stampSigner, platform, followed))
-		);
+		followerStamp = IFollowerSinceStamp(address(new FollowerSinceStamp(stampSigner, platform, followed)));
 		emit FollowerStampDeployed(address(followerStamp));
 
 		// Deploy FollowerSincePoints contract

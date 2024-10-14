@@ -44,14 +44,7 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		if (bytes(follower).length == 0) revert InvalidFollower();
 		if (hasFollowerMinted[follower]) revert FollowerAlreadyMinted();
 
-		bytes memory encodedData = abi.encode(
-			PLATFORM,
-			FOLLOWED,
-			follower,
-			since,
-			msg.sender,
-			deadline
-		);
+		bytes memory encodedData = abi.encode(PLATFORM, FOLLOWED, follower, since, msg.sender, deadline);
 
 		uint256 stampId = _mintStamp(msg.sender, encodedData, signature, deadline);
 

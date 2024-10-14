@@ -38,10 +38,7 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	}
 
 	/// @inheritdoc Points
-	function _balanceAtTimestamp(
-		address account,
-		uint256 timestamp
-	) internal view override returns (uint256) {
+	function _balanceAtTimestamp(address account, uint256 timestamp) internal view override returns (uint256) {
 		uint256 totalPoints;
 
 		for (uint256 i; i < _stampCount; ) {
@@ -97,9 +94,7 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		for (uint256 j = 1; j <= stampTotalSupply; ) {
 			uint256 followerSince = stampInfo.stamp.followStartTimestamp(j);
 			if (followerSince != 0 && followerSince <= timestamp) {
-				totalPoints +=
-					_calculatePointsAtTimestamp(followerSince, timestamp) *
-					stampInfo.multiplier;
+				totalPoints += _calculatePointsAtTimestamp(followerSince, timestamp) * stampInfo.multiplier;
 			}
 			unchecked {
 				++j;
@@ -112,10 +107,7 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	/// @param followerSince The timestamp when the user started following
 	/// @param timestamp The current timestamp
 	/// @return The calculated points
-	function _calculatePointsAtTimestamp(
-		uint256 followerSince,
-		uint256 timestamp
-	) private pure returns (uint256) {
+	function _calculatePointsAtTimestamp(uint256 followerSince, uint256 timestamp) private pure returns (uint256) {
 		unchecked {
 			uint256 durationInSeconds = timestamp - followerSince;
 			return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;

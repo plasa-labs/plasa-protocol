@@ -35,10 +35,7 @@ contract OpenQuestion is Question, IOpenQuestion {
 	}
 
 	/// @inheritdoc IOpenQuestion
-	function addOption(
-		string memory _title,
-		string memory _description
-	) external override whileActive {
+	function addOption(string memory _title, string memory _description) external override whileActive {
 		if (!canAddOption(msg.sender)) {
 			revert InsufficientPoints();
 		}
@@ -56,10 +53,7 @@ contract OpenQuestion is Question, IOpenQuestion {
 	}
 
 	/// @inheritdoc IQuestion
-	function hasVotedOption(
-		address voter,
-		uint256 optionId
-	) public view override(IQuestion, Question) returns (bool) {
+	function hasVotedOption(address voter, uint256 optionId) public view override(IQuestion, Question) returns (bool) {
 		return userVotes[voter][optionId];
 	}
 

@@ -86,10 +86,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @param data Encoded data that was signed
 	/// @param signature Signature to verify
 	/// @return Boolean indicating whether the signature is valid
-	function _verifySignature(
-		bytes memory data,
-		bytes calldata signature
-	) internal view returns (bool) {
+	function _verifySignature(bytes memory data, bytes calldata signature) internal view returns (bool) {
 		return signer == _hashTypedDataV4(_getTypedDataHash(data)).recover(signature);
 	}
 
@@ -115,11 +112,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @param tokenId ID of the token being minted or transferred
 	/// @param auth Address initiating the update (address(0) for minting)
 	/// @return The address of the previous owner (always address(0) for minting)
-	function _update(
-		address to,
-		uint256 tokenId,
-		address auth
-	) internal virtual override returns (address) {
+	function _update(address to, uint256 tokenId, address auth) internal virtual override returns (address) {
 		// Only allow minting (auth == address(0)), revert on transfer attempts
 		if (auth != address(0)) {
 			revert NonTransferableStamp();

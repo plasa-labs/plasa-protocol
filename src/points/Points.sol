@@ -26,16 +26,10 @@ abstract contract Points is IPoints {
 	/// @param user The address of the user
 	/// @param timestamp The timestamp at which to check the balance
 	/// @return The balance of the user at the given timestamp
-	function _balanceAtTimestamp(
-		address user,
-		uint256 timestamp
-	) internal view virtual returns (uint256);
+	function _balanceAtTimestamp(address user, uint256 timestamp) internal view virtual returns (uint256);
 
 	/// @inheritdoc IPoints
-	function balanceAtTimestamp(
-		address user,
-		uint256 timestamp
-	) public view virtual override returns (uint256) {
+	function balanceAtTimestamp(address user, uint256 timestamp) public view virtual override returns (uint256) {
 		return _balanceAtTimestamp(user, timestamp);
 	}
 
@@ -50,9 +44,7 @@ abstract contract Points is IPoints {
 	function _totalSupplyAtTimestamp(uint256 timestamp) internal view virtual returns (uint256);
 
 	/// @inheritdoc IPoints
-	function totalSupplyAtTimestamp(
-		uint256 timestamp
-	) public view virtual override returns (uint256) {
+	function totalSupplyAtTimestamp(uint256 timestamp) public view virtual override returns (uint256) {
 		return _totalSupplyAtTimestamp(timestamp);
 	}
 

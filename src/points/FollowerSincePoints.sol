@@ -17,20 +17,13 @@ contract FollowerSincePoints is IFollowerSincePoints, Points {
 	/// @param _followerStamp Address of the IFollowerSinceStamp contract
 	/// @param _name Name of the token
 	/// @param _symbol Symbol of the token
-	constructor(
-		address _followerStamp,
-		string memory _name,
-		string memory _symbol
-	) Points(_name, _symbol, 18) {
+	constructor(address _followerStamp, string memory _name, string memory _symbol) Points(_name, _symbol, 18) {
 		followerStamp = IFollowerSinceStamp(_followerStamp);
 	}
 
 	/// @inheritdoc Points
 	/// @dev Calculates the balance for a user at a specific timestamp based on their follower duration
-	function _balanceAtTimestamp(
-		address user,
-		uint256 timestamp
-	) internal view override returns (uint256) {
+	function _balanceAtTimestamp(address user, uint256 timestamp) internal view override returns (uint256) {
 		uint256 followerSince = followerStamp.getFollowerSinceTimestamp(user);
 		if (_isInvalidFollowerTimestamp(followerSince, timestamp)) {
 			return 0;
@@ -64,10 +57,7 @@ contract FollowerSincePoints is IFollowerSincePoints, Points {
 	/// @param followerSince Timestamp when the user started following
 	/// @param timestamp Timestamp to compare against
 	/// @return bool True if the follower timestamp is invalid, false otherwise
-	function _isInvalidFollowerTimestamp(
-		uint256 followerSince,
-		uint256 timestamp
-	) private pure returns (bool) {
+	function _isInvalidFollowerTimestamp(uint256 followerSince, uint256 timestamp) private pure returns (bool) {
 		return followerSince == 0 || followerSince > timestamp;
 	}
 
@@ -82,10 +72,7 @@ contract FollowerSincePoints is IFollowerSincePoints, Points {
 	/// @param followerSince Timestamp when the user started following
 	/// @param timestamp Current timestamp for calculation
 	/// @return uint256 Calculated points, scaled to 18 decimal places
-	function _calculatePointsAtTimestamp(
-		uint256 followerSince,
-		uint256 timestamp
-	) private pure returns (uint256) {
+	function _calculatePointsAtTimestamp(uint256 followerSince, uint256 timestamp) private pure returns (uint256) {
 		uint256 durationInSeconds = timestamp - followerSince;
 		return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
 	}

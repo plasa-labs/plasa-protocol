@@ -26,11 +26,7 @@ interface IAccountOwnershipStamp is IStamp {
 	/// @param deadline The timestamp after which the signature is no longer valid
 	/// @param signature The signature authorizing the minting, typically signed by a trusted authority
 	/// @return The ID of the newly minted stamp
-	function mintStamp(
-		string calldata id,
-		uint256 deadline,
-		bytes calldata signature
-	) external returns (uint256);
+	function mintStamp(string calldata id, uint256 deadline, bytes calldata signature) external returns (uint256);
 
 	/// @notice Emitted when a new account ownership stamp is minted
 	/// @dev This event should be emitted after successfully minting a new stamp

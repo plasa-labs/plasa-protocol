@@ -4,11 +4,12 @@ pragma solidity ^0.8.20;
 import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
 import { IFollowerSinceStamp } from "../../stamps/interfaces/IFollowerSinceStamp.sol";
 import { IFollowerSincePoints } from "../../points/interfaces/IFollowerSincePoints.sol";
+import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
 
 /// @title ISpace - Interface for managing community spaces in Plasa
 /// @notice This interface defines the structure for managing follower stamps, points, and questions within a space
 /// @dev Implement this interface to create a space contract that represents a community or organization using Plasa
-interface ISpace {
+interface ISpace is ISpaceAccessControl {
 	// Structs
 
 	/// @notice Represents a comprehensive view of a space

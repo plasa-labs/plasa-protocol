@@ -33,7 +33,6 @@ interface IQuestion {
 		bool isActive; // Whether the question is currently active, determined by Question.isActive()
 		address owner; // The owner of the question contract, set in the constructor and managed by Ownable
 		uint256 started; // The timestamp when the question was deployed, set in the Question constructor
-		uint256 userOptionVoted; // The option ID the user voted for (0 if not voted), set in Question.getQuestionView()
 		uint256 userPointsCurrent; // The user's current point balance, retrieved from the Points contract
 		uint256 userPointsDeadline; // The user's point balance at the voting deadline, retrieved from the Points contract
 		bool userCanAddOption; // Whether the user can add a new option (always false for FixedQuestion, conditional for OpenQuestion)

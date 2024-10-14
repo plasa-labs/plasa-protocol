@@ -134,7 +134,6 @@ abstract contract Question is Ownable, IQuestion {
 				isActive: isActive(),
 				owner: owner(),
 				started: deploymentTime,
-				userOptionVoted: userOptionVoted,
 				userPointsCurrent: points.balanceOf(user),
 				userPointsDeadline: points.balanceAtTimestamp(user, deadline),
 				userCanAddOption: canAddOption(user)

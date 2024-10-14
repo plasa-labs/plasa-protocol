@@ -23,6 +23,27 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 		PLATFORM = _platform;
 	}
 
+	/// @inheritdoc IAccountOwnershipStamp
+	function getAccountOwnershipStampView(
+		address user
+	) external view returns (AccountOwnershipStampView memory stampView) {
+		stampView.stampAddress = address(this);
+		stampView.totalSupply = totalSupply();
+		stampView.stampName = name();
+		stampView.stampSymbol = symbol();
+		stampView.platform = PLATFORM;
+
+		uint256 balance = balanceOf(user);
+		stampView.userHasStamp = balance > 0;
+
+		if (stampView.userHasStamp) {
+			uint256 userStampId = tokenOfOwnerByIndex(user, 0);
+			stampView.userStampId = tokenOfOwnerByIndex(user, 0);
+			stampView.userUsername = _tokenUsernames[userStampId];
+			stampView.userMintingDate = _mintDates[userStampId];
+		}
+	}
+
 	/// @notice Mints a new stamp for a given username
 	/// @dev Verifies the signature and ensures the username is not already registered
 	/// @param username The username to mint the stamp for

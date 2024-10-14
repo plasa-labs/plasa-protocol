@@ -17,7 +17,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	address public immutable override signer;
 
 	/// @notice Mapping to store the minting date for each token
-	mapping(uint256 => uint256) private _mintDates;
+	mapping(uint256 => uint256) internal _mintDates;
 
 	/// @notice Initializes the Stamp contract
 	/// @param stampName Name of the stamp collection

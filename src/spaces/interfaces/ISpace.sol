@@ -17,7 +17,6 @@ interface ISpace is ISpaceAccessControl {
 		string name;
 		string description;
 		string imageUrl;
-		address owner;
 		IFollowerSinceStamp.FollowerSinceStampView stamp;
 		PointsView points;
 		QuestionPreview[] questions;
@@ -66,6 +65,10 @@ interface ISpace is ISpaceAccessControl {
 	/// @param newImageUrl The new image URL of the space
 	event SpaceImageUrlUpdated(string newImageUrl);
 
+	/// @notice Emitted when the default points contract is updated
+	/// @param newDefaultPoints The address of the new default points contract
+	event DefaultPointsUpdated(address newDefaultPoints);
+
 	// External Functions
 
 	/// @notice Deploys a new fixed question
@@ -113,15 +116,16 @@ interface ISpace is ISpaceAccessControl {
 	/// @param _spaceImageUrl The new image URL of the space
 	function updateSpaceImageUrl(string memory _spaceImageUrl) external;
 
+	/// @notice Updates the default points contract
+	/// @dev Only callable by a super admin
+	/// @param newDefaultPoints The address of the new default points contract
+	function updateDefaultPoints(address newDefaultPoints) external;
+
 	// External View Functions
 
 	/// @notice Returns the FollowerSinceStamp contract associated with this space
 	/// @return The IFollowerSinceStamp interface of the associated stamp contract
 	function followerStamp() external view returns (IFollowerSinceStamp);
-
-	/// @notice Returns the FollowerSincePoints contract associated with this space
-	/// @return The IFollowerSincePoints interface of the associated points contract
-	function followerPoints() external view returns (IFollowerSincePoints);
 
 	/// @notice Returns the name of the space
 	/// @return The name of the space
@@ -147,4 +151,8 @@ interface ISpace is ISpaceAccessControl {
 	/// @param user The address of the user to get the view for
 	/// @return A SpaceView struct containing all relevant information about the space
 	function getSpaceView(address user) external view returns (SpaceView memory);
+
+	/// @notice Returns the default FollowerSincePoints contract associated with this space
+	/// @return The IFollowerSincePoints interface of the associated default points contract
+	function defaultPoints() external view returns (IFollowerSincePoints);
 }

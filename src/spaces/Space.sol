@@ -10,13 +10,14 @@ import "../voting/FixedQuestion.sol";
 import "../voting/OpenQuestion.sol";
 import "../stamps/FollowerSinceStamp.sol";
 import "../points/FollowerSincePoints.sol";
+import "./SpaceAccessControl.sol";
 
 /// @title Space - A contract for managing community spaces in Plasa
 /// @notice This contract represents a space, organization, or leader using Plasa for their community
-/// @dev Implements ISpace interface and inherits from Ownable for access control
-contract Space is ISpace, Ownable {
+/// @dev Implements ISpace interface and inherits from SpaceAccessControl for access control
+contract Space is ISpace, SpaceAccessControl {
 	IFollowerSinceStamp public followerStamp;
-	IFollowerSincePoints public followerPoints;
+	IFollowerSincePoints public defaultPoints;
 	IQuestion[] private questions;
 
 	string public spaceName;
@@ -25,7 +26,9 @@ contract Space is ISpace, Ownable {
 
 	/// @notice Initializes the Space contract
 	/// @dev Deploys FollowerSinceStamp and FollowerSincePoints contracts
-	/// @param initialOwner The address that will own this space
+	/// @param initialSuperAdmins An array of addresses to be granted the SUPER_ADMIN_ROLE
+	/// @param initialAdmins An array of addresses to be granted the ADMIN_ROLE
+	/// @param initialModerators An array of addresses to be granted the MODERATOR_ROLE
 	/// @param stampSigner The address authorized to sign mint requests for follower stamps
 	/// @param platform The platform name (e.g., "Instagram", "Twitter")
 	/// @param followed The account being followed
@@ -33,14 +36,16 @@ contract Space is ISpace, Ownable {
 	/// @param _spaceDescription The description of the space
 	/// @param _spaceImageUrl The URL of the space's image
 	constructor(
-		address initialOwner,
+		address[] memory initialSuperAdmins,
+		address[] memory initialAdmins,
+		address[] memory initialModerators,
 		address stampSigner,
 		string memory platform,
 		string memory followed,
 		string memory _spaceName,
 		string memory _spaceDescription,
 		string memory _spaceImageUrl
-	) Ownable(initialOwner) {
+	) SpaceAccessControl(initialSuperAdmins, initialAdmins, initialModerators) {
 		spaceName = _spaceName;
 		spaceDescription = _spaceDescription;
 		spaceImageUrl = _spaceImageUrl;
@@ -51,10 +56,21 @@ contract Space is ISpace, Ownable {
 
 		// Deploy FollowerSincePoints contract
 		string memory pointsName = string(abi.encodePacked(_spaceName, " Points"));
-		followerPoints = IFollowerSincePoints(
+		defaultPoints = IFollowerSincePoints(
 			address(new FollowerSincePoints(address(followerStamp), pointsName, "POINT"))
 		);
-		emit FollowerPointsDeployed(address(followerPoints));
+		emit FollowerPointsDeployed(address(defaultPoints));
+	}
+
+	/// @notice Updates the default points contract
+	/// @dev Only callable by a super admin
+	/// @param newDefaultPoints The address of the new default points contract
+	function updateDefaultPoints(
+		address newDefaultPoints
+	) external onlyAllowed(PermissionName.UpdateSpaceDefaultPoints) {
+		require(newDefaultPoints != address(0), "New default points address cannot be zero");
+		defaultPoints = IFollowerSincePoints(newDefaultPoints);
+		emit DefaultPointsUpdated(newDefaultPoints);
 	}
 
 	/// @inheritdoc ISpace
@@ -64,13 +80,13 @@ contract Space is ISpace, Ownable {
 		uint256 deadline,
 		string[] memory initialOptionTitles,
 		string[] memory initialOptionDescriptions
-	) external onlyOwner returns (address) {
+	) external onlyAllowed(PermissionName.CreateFixedQuestion) returns (address) {
 		FixedQuestion newQuestion = new FixedQuestion(
-			owner(),
+			msg.sender,
 			questionTitle,
 			questionDescription,
 			deadline,
-			address(followerPoints),
+			address(defaultPoints),
 			initialOptionTitles,
 			initialOptionDescriptions
 		);
@@ -85,13 +101,13 @@ contract Space is ISpace, Ownable {
 		string memory questionDescription,
 		uint256 deadline,
 		uint256 minPointsToAddOption
-	) external onlyOwner returns (address) {
+	) external onlyAllowed(PermissionName.CreateOpenQuestion) returns (address) {
 		OpenQuestion newQuestion = new OpenQuestion(
-			owner(),
+			msg.sender,
 			questionTitle,
 			questionDescription,
 			deadline,
-			address(followerPoints),
+			address(defaultPoints),
 			minPointsToAddOption
 		);
 		questions.push(IQuestion(address(newQuestion)));
@@ -110,19 +126,21 @@ contract Space is ISpace, Ownable {
 	}
 
 	/// @inheritdoc ISpace
-	function updateSpaceName(string memory _spaceName) external onlyOwner {
+	function updateSpaceName(string memory _spaceName) external onlyAllowed(PermissionName.UpdateSpaceInfo) {
 		spaceName = _spaceName;
 		emit SpaceNameUpdated(_spaceName);
 	}
 
 	/// @inheritdoc ISpace
-	function updateSpaceDescription(string memory _spaceDescription) external onlyOwner {
+	function updateSpaceDescription(
+		string memory _spaceDescription
+	) external onlyAllowed(PermissionName.UpdateSpaceInfo) {
 		spaceDescription = _spaceDescription;
 		emit SpaceDescriptionUpdated(_spaceDescription);
 	}
 
 	/// @inheritdoc ISpace
-	function updateSpaceImageUrl(string memory _spaceImageUrl) external onlyOwner {
+	function updateSpaceImageUrl(string memory _spaceImageUrl) external onlyAllowed(PermissionName.UpdateSpaceInfo) {
 		spaceImageUrl = _spaceImageUrl;
 		emit SpaceImageUrlUpdated(_spaceImageUrl);
 	}
@@ -147,12 +165,8 @@ contract Space is ISpace, Ownable {
 				name: spaceName,
 				description: spaceDescription,
 				imageUrl: spaceImageUrl,
-				owner: owner(),
 				stamp: followerStamp.getFollowerSinceStampView(user),
-				points: PointsView({
-					addr: address(followerPoints),
-					userCurrentBalance: followerPoints.balanceOf(user)
-				}),
+				points: PointsView({ addr: address(defaultPoints), userCurrentBalance: defaultPoints.balanceOf(user) }),
 				questions: questionPreviews
 			});
 	}

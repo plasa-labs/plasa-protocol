@@ -57,7 +57,7 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 	/// @dev Overrides the base Stamp contract's implementation
 	/// @param data The encoded data containing platform, username, recipient, and deadline
 	/// @return The keccak256 hash of the encoded data
-	function getTypedDataHash(bytes memory data) internal pure override returns (bytes32) {
+	function _getTypedDataHash(bytes memory data) internal pure override returns (bytes32) {
 		(string memory platform, string memory id, address recipient, uint256 deadline) = abi
 			.decode(data, (string, string, address, uint256));
 

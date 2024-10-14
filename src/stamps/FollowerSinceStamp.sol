@@ -78,7 +78,7 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	/// @notice Generates a hash of the typed data for signature verification
 	/// @dev Overrides the base Stamp contract's getTypedDataHash function
 	/// @inheritdoc Stamp
-	function getTypedDataHash(bytes memory data) internal pure override returns (bytes32) {
+	function _getTypedDataHash(bytes memory data) internal pure override returns (bytes32) {
 		(
 			string memory platform,
 			string memory followed,

@@ -23,9 +23,19 @@ interface IStamp is IERC721Enumerable {
 	/// @notice Thrown when attempting to transfer, approve, or perform any operation that would change token ownership
 	error NonTransferableStamp();
 
+	/// @notice Thrown when querying the mint date of a non-existent token
+	/// @param tokenId The ID of the non-existent token
+	error TokenDoesNotExist(uint256 tokenId);
+
 	/// @notice Returns the address of the signer authorized to sign minting requests
 	/// @return The address of the authorized signer
 	function signer() external view returns (address);
+
+	/// @notice Retrieves the minting date of a specific token
+	/// @param tokenId The ID of the token to query
+	/// @return The timestamp when the token was minted
+	/// @dev Reverts with TokenDoesNotExist if the token does not exist
+	function getMintDate(uint256 tokenId) external view returns (uint256);
 
 	// Note: The following functions are not explicitly defined here but are inherited from IERC721Enumerable:
 	// - tokenOfOwnerByIndex(address owner, uint256 index) → uint256

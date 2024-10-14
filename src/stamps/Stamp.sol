@@ -16,6 +16,9 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @dev Immutable to ensure it cannot be changed after deployment
 	address public immutable override signer;
 
+	/// @notice Mapping to store the minting date for each token
+	mapping(uint256 => uint256) private _mintDates;
+
 	/// @notice Initializes the Stamp contract
 	/// @param stampName Name of the stamp collection
 	/// @param stampSymbol Symbol of the stamp collection
@@ -30,11 +33,17 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 		signer = _signer;
 	}
 
+	/// @inheritdoc IStamp
+	function getMintDate(uint256 tokenId) public view override returns (uint256) {
+		if (_mintDates[tokenId] == 0) revert TokenDoesNotExist(tokenId);
+		return _mintDates[tokenId];
+	}
+
 	/// @notice Computes the typed data hash for signature verification
 	/// @dev Must be implemented by derived contracts to define the structure of the signed data
 	/// @param data The encoded data to be hashed
 	/// @return The computed hash
-	function getTypedDataHash(bytes memory data) internal view virtual returns (bytes32);
+	function _getTypedDataHash(bytes memory data) internal view virtual returns (bytes32);
 
 	/// @notice Internal function to mint a new stamp
 	/// @dev Checks deadline, verifies signature, ensures one stamp per address, and mints
@@ -67,6 +76,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 		// Mint the new stamp
 		uint256 newStampId = totalSupply() + 1;
 		_safeMint(to, newStampId);
+		_mintDates[newStampId] = block.timestamp;
 
 		return newStampId;
 	}
@@ -80,7 +90,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 		bytes memory data,
 		bytes calldata signature
 	) internal view returns (bool) {
-		return signer == _hashTypedDataV4(getTypedDataHash(data)).recover(signature);
+		return signer == _hashTypedDataV4(_getTypedDataHash(data)).recover(signature);
 	}
 
 	// ============================

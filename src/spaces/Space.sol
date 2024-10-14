@@ -148,12 +148,7 @@ contract Space is ISpace, Ownable {
 				description: spaceDescription,
 				imageUrl: spaceImageUrl,
 				owner: owner(),
-				stamp: StampView({
-					addr: address(followerStamp),
-					platform: followerStamp.PLATFORM(),
-					followedAccount: followerStamp.FOLLOWED(),
-					userHasStamp: followerStamp.balanceOf(user) > 0
-				}),
+				stamp: followerStamp.getFollowerSinceStampView(user),
 				points: PointsView({
 					addr: address(followerPoints),
 					userCurrentBalance: followerPoints.balanceOf(user)

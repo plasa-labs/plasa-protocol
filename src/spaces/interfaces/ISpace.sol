@@ -17,17 +17,9 @@ interface ISpace {
 		string description;
 		string imageUrl;
 		address owner;
-		StampView stamp;
+		IFollowerSinceStamp.FollowerSinceStampView stamp;
 		PointsView points;
 		QuestionPreview[] questions;
-	}
-
-	/// @notice Represents a view of the follower stamp associated with the space
-	struct StampView {
-		address addr;
-		string platform;
-		string followedAccount;
-		bool userHasStamp;
 	}
 
 	/// @notice Represents a view of the points system associated with the space

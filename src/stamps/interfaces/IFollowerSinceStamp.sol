@@ -4,65 +4,77 @@ pragma solidity ^0.8.20;
 import { IStamp } from "./IStamp.sol";
 
 /// @title IFollowerSinceStamp
-/// @notice Interface for a stamp that represents a follower relationship on a platform
+/// @notice Interface for the FollowerSinceStamp contract
 interface IFollowerSinceStamp is IStamp {
-	// Custom errors for specific validation failures
-	/// @notice Thrown when the recipient address is invalid
+	/// @dev Struct to hold comprehensive view data for a FollowerSinceStamp
+	struct FollowerSinceStampView {
+		address stampAddress;
+		uint256 totalSupply;
+		string stampName;
+		string stampSymbol;
+		string platform;
+		string followedAccount;
+		bool userHasStamp;
+		uint256 userStampId;
+		uint256 userMintingDate;
+		uint256 userFollowerSince;
+		uint256 timeSinceFollow;
+	}
+
+	/// @notice Emitted when a new follower since stamp is minted
+	/// @param platform The platform where the following relationship exists
+	/// @param followed The account being followed
+	/// @param follower The follower's identifier
+	/// @param since The timestamp when the following relationship started
+	/// @param stampId The ID of the minted stamp
+	/// @param recipient The address receiving the stamp
+	event FollowerSince(
+		string indexed platform,
+		string indexed followed,
+		string follower,
+		uint256 since,
+		uint256 indexed stampId,
+		address recipient
+	);
+
+	/// @notice Error thrown when an invalid recipient address is provided
 	error InvalidRecipient();
 
-	/// @notice Thrown when the follower identifier is invalid
+	/// @notice Error thrown when an invalid follower identifier is provided
 	error InvalidFollower();
 
-	/// @notice Error thrown when a follower attempts to mint a stamp more than once
+	/// @notice Error thrown when a follower attempts to mint more than one stamp
 	error FollowerAlreadyMinted();
 
-	// View functions to get stamp-specific information
-	/// @notice The platform identifier for this stamp (e.g., "Twitter", "Instagram")
+	/// @notice The platform where the following relationship exists
 	function PLATFORM() external view returns (string memory);
 
-	/// @notice The identifier of the followed account on the platform
+	/// @notice The account being followed
 	function FOLLOWED() external view returns (string memory);
 
-	/// @notice Mapping to store the "since" timestamp for each stamp token ID
+	/// @notice Mapping of stamp IDs to their follow start timestamps
 	function followStartTimestamp(uint256 stampId) external view returns (uint256);
 
-	/// @notice Check if a follower has already minted a stamp
-	/// @param follower The identifier of the follower on the platform
-	/// @return True if the follower has already minted a stamp, false otherwise
-	function hasFollowerMinted(string calldata follower) external view returns (bool);
-
 	/// @notice Mints a new follower since stamp
-	/// @dev This function verifies the signature, mints a new stamp, and prevents duplicate minting
-	/// @param follower The identifier of the follower on the platform
-	/// @param since The timestamp since when the user has been following
-	/// @param deadline The timestamp after which the signature is no longer valid
-	/// @param signature The signature authorizing the minting, signed by a trusted authority
-	/// @return stampId The ID of the newly minted stamp
+	/// @param follower The follower's identifier
+	/// @param since The timestamp when the following relationship started
+	/// @param deadline The deadline for the signature to be valid
+	/// @param signature The signature authorizing the mint
+	/// @return The ID of the minted stamp
 	function mintStamp(
 		string calldata follower,
 		uint256 since,
 		uint256 deadline,
 		bytes calldata signature
-	) external returns (uint256 stampId);
+	) external returns (uint256);
 
-	/// @notice Get the follower since timestamp for a given address
-	/// @param follower The address to check
-	/// @return The timestamp when the follower started following, or 0 if not found or if the follower has no stamps
+	/// @notice Retrieves the follower since timestamp for a given address
+	/// @param follower The address of the follower
+	/// @return The timestamp when the following relationship started, or 0 if not found
 	function getFollowerSinceTimestamp(address follower) external view returns (uint256);
 
-	/// @notice Emitted when a new follower since stamp is minted
-	/// @param platform The platform identifier
-	/// @param followed The identifier of the followed account
-	/// @param follower The identifier of the follower
-	/// @param since The timestamp since when the user has been following
-	/// @param stampId The ID of the minted stamp
-	/// @param owner The address of the stamp owner (likely the follower's address)
-	event FollowerSince(
-		string platform,
-		string followed,
-		string follower,
-		uint256 since,
-		uint256 stampId,
-		address owner
-	);
+	/// @notice Retrieves a comprehensive view of the FollowerSinceStamp for a given user
+	/// @param user The address of the user to check
+	/// @return A FollowerSinceStampView struct containing all relevant information
+	function getFollowerSinceStampView(address user) external view returns (FollowerSinceStampView memory);
 }

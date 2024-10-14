@@ -17,9 +17,6 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	/// @inheritdoc IFollowerSinceStamp
 	mapping(uint256 stampId => uint256 timestamp) public override followStartTimestamp;
 
-	/// @notice Mapping to track if a follower has already minted a stamp
-	mapping(string => bool) public hasFollowerMinted;
-
 	/// @notice Initializes the FollowerSinceStamp contract
 	/// @param _signer The address authorized to sign mint requests
 	/// @param _platform The platform where the following relationship exists
@@ -42,7 +39,6 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	) external override returns (uint256) {
 		if (msg.sender == address(0)) revert InvalidRecipient();
 		if (bytes(follower).length == 0) revert InvalidFollower();
-		if (hasFollowerMinted[follower]) revert FollowerAlreadyMinted();
 
 		bytes memory encodedData = abi.encode(PLATFORM, FOLLOWED, follower, since, msg.sender, deadline);
 
@@ -50,9 +46,6 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 
 		// Store the "since" timestamp for the stamp
 		followStartTimestamp[stampId] = since;
-
-		// Mark the follower as having minted a stamp
-		hasFollowerMinted[follower] = true;
 
 		emit FollowerSince(PLATFORM, FOLLOWED, follower, since, stampId, msg.sender);
 
@@ -66,6 +59,30 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		} catch {
 			return 0;
 		}
+	}
+
+	/// @inheritdoc IFollowerSinceStamp
+	function getFollowerSinceStampView(
+		address user
+	) external view override returns (FollowerSinceStampView memory stampView) {
+		stampView.stampAddress = address(this);
+		stampView.totalSupply = totalSupply();
+		stampView.stampName = name();
+		stampView.stampSymbol = symbol();
+		stampView.platform = PLATFORM;
+		stampView.followedAccount = FOLLOWED;
+
+		try this.tokenOfOwnerByIndex(user, 0) returns (uint256 stampId) {
+			stampView.userHasStamp = true;
+			stampView.userStampId = stampId;
+			stampView.userMintingDate = _mintDates[stampId];
+			stampView.userFollowerSince = followStartTimestamp[stampId];
+			stampView.timeSinceFollow = block.timestamp - stampView.userFollowerSince;
+		} catch {
+			stampView.userHasStamp = false;
+		}
+
+		return stampView;
 	}
 
 	/// @notice Generates a hash of the typed data for signature verification

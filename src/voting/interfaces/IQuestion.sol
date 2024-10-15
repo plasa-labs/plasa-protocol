@@ -115,4 +115,8 @@ interface IQuestion is IQuestionView {
 	/// @param user The address of the user to check
 	/// @return The voting power (point balance) of the user at the voting deadline
 	function votingPower(address user) external view returns (uint256);
+
+	/// @notice Retrieves the type of question
+	/// @return The type of question
+	function questionType() external view returns (QuestionType);
 }

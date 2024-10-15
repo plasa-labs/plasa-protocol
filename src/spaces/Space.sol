@@ -16,27 +16,27 @@ import { ISpaceView } from "./interfaces/ISpaceView.sol";
 /// @title Space - A contract for managing community spaces in Plasa
 /// @notice This contract represents a space, organization, or leader using Plasa for their community
 /// @dev Implements ISpace interface and inherits from SpaceAccessControl for access control
+/// @custom:security-contact security@plasa.io
 contract Space is ISpace, SpaceAccessControl {
-	IFollowerSinceStamp public followerStamp;
-	IFollowerSincePoints public defaultPoints;
+	// State variables
+	IFollowerSinceStamp public override followerStamp;
+	IFollowerSincePoints public override defaultPoints;
 	IQuestion[] private questions;
 
-	string public spaceName;
-	string public spaceDescription;
-	string public spaceImageUrl;
+	string public override spaceName;
+	string public override spaceDescription;
+	string public override spaceImageUrl;
 
-	/// @notice Initializes the Space contract
-	/// @dev Deploys FollowerSinceStamp and FollowerSincePoints contracts
-	/// @param initialSuperAdmins An array of addresses to be granted the SUPER_ADMIN_ROLE
-	/// @param initialAdmins An array of addresses to be granted the ADMIN_ROLE
-	/// @param initialModerators An array of addresses to be granted the MODERATOR_ROLE
-	/// @param stampSigner The address authorized to sign mint requests for follower stamps
-	/// @param platform The platform name (e.g., "Instagram", "Twitter")
-	/// @param followed The account being followed
-	/// @param _spaceName The name of the space
-	/// @param _spaceDescription The description of the space
-	/// @param _spaceImageUrl The URL of the space's image
-	/// @param _pointsSymbol The symbol for the space's points
+	uint256 public minPointsToAddOpenQuestionOption;
+
+	/// @notice Constructor for Space contract
+	/// @param initialSuperAdmins Array of initial super admins
+	/// @param initialAdmins Array of initial admins
+	/// @param initialModerators Array of initial moderators
+	/// @param stampSigner Signer address for the follower stamp
+	/// @param platform Platform name
+	/// @param followed Platform username
+	/// @param _spaceName Name of the space
 	constructor(
 		address[] memory initialSuperAdmins,
 		address[] memory initialAdmins,
@@ -47,11 +47,13 @@ contract Space is ISpace, SpaceAccessControl {
 		string memory _spaceName,
 		string memory _spaceDescription,
 		string memory _spaceImageUrl,
-		string memory _pointsSymbol
+		string memory _pointsSymbol,
+		uint256 _minPointsToAddOpenQuestionOption
 	) SpaceAccessControl(initialSuperAdmins, initialAdmins, initialModerators) {
 		spaceName = _spaceName;
 		spaceDescription = _spaceDescription;
 		spaceImageUrl = _spaceImageUrl;
+		minPointsToAddOpenQuestionOption = _minPointsToAddOpenQuestionOption;
 
 		// Deploy FollowerSinceStamp contract
 		followerStamp = IFollowerSinceStamp(
@@ -67,12 +69,10 @@ contract Space is ISpace, SpaceAccessControl {
 		emit FollowerPointsDeployed(address(defaultPoints));
 	}
 
-	/// @notice Updates the default points contract
-	/// @dev Only callable by a super admin
-	/// @param newDefaultPoints The address of the new default points contract
+	/// @inheritdoc ISpace
 	function updateDefaultPoints(
 		address newDefaultPoints
-	) external onlyAllowed(PermissionName.UpdateSpaceDefaultPoints) {
+	) external override onlyAllowed(PermissionName.UpdateSpaceDefaultPoints) {
 		require(newDefaultPoints != address(0), "New default points address cannot be zero");
 		defaultPoints = IFollowerSincePoints(newDefaultPoints);
 		emit DefaultPointsUpdated(newDefaultPoints);
@@ -85,7 +85,7 @@ contract Space is ISpace, SpaceAccessControl {
 		uint256 deadline,
 		string[] memory initialOptionTitles,
 		string[] memory initialOptionDescriptions
-	) external onlyAllowed(PermissionName.CreateFixedQuestion) returns (address) {
+	) external override onlyAllowed(PermissionName.CreateFixedQuestion) returns (address) {
 		FixedQuestion newQuestion = new FixedQuestion(
 			address(this),
 			questionTitle,
@@ -104,7 +104,7 @@ contract Space is ISpace, SpaceAccessControl {
 		string memory questionTitle,
 		string memory questionDescription,
 		uint256 deadline
-	) external onlyAllowed(PermissionName.CreateOpenQuestion) returns (address) {
+	) external override onlyAllowed(PermissionName.CreateOpenQuestion) returns (address) {
 		OpenQuestion newQuestion = new OpenQuestion(address(this), questionTitle, questionDescription, deadline);
 		questions.push(IQuestion(address(newQuestion)));
 		emit QuestionDeployed(address(newQuestion), IQuestionView.QuestionType.Open);
@@ -112,17 +112,17 @@ contract Space is ISpace, SpaceAccessControl {
 	}
 
 	/// @inheritdoc ISpace
-	function getQuestions() external view returns (IQuestion[] memory) {
+	function getQuestions() external view override returns (IQuestion[] memory) {
 		return questions;
 	}
 
 	/// @inheritdoc ISpace
-	function getQuestionCount() external view returns (uint256) {
+	function getQuestionCount() external view override returns (uint256) {
 		return questions.length;
 	}
 
 	/// @inheritdoc ISpace
-	function updateSpaceName(string memory _spaceName) external onlyAllowed(PermissionName.UpdateSpaceInfo) {
+	function updateSpaceName(string memory _spaceName) external override onlyAllowed(PermissionName.UpdateSpaceInfo) {
 		spaceName = _spaceName;
 		emit SpaceNameUpdated(_spaceName);
 	}
@@ -130,40 +130,97 @@ contract Space is ISpace, SpaceAccessControl {
 	/// @inheritdoc ISpace
 	function updateSpaceDescription(
 		string memory _spaceDescription
-	) external onlyAllowed(PermissionName.UpdateSpaceInfo) {
+	) external override onlyAllowed(PermissionName.UpdateSpaceInfo) {
 		spaceDescription = _spaceDescription;
 		emit SpaceDescriptionUpdated(_spaceDescription);
 	}
 
 	/// @inheritdoc ISpace
-	function updateSpaceImageUrl(string memory _spaceImageUrl) external onlyAllowed(PermissionName.UpdateSpaceInfo) {
+	function updateSpaceImageUrl(
+		string memory _spaceImageUrl
+	) external override onlyAllowed(PermissionName.UpdateSpaceInfo) {
 		spaceImageUrl = _spaceImageUrl;
 		emit SpaceImageUrlUpdated(_spaceImageUrl);
 	}
 
 	/// @inheritdoc ISpace
-	function getSpaceView(address user) external view override returns (SpaceView memory) {
-		QuestionPreview[] memory questionPreviews = new QuestionPreview[](questions.length);
-		for (uint i = 0; i < questions.length; i++) {
-			IQuestion question = questions[i];
-			questionPreviews[i] = QuestionPreview({
-				addr: address(question),
-				title: question.title(),
-				description: question.description(),
-				deadline: question.deadline(),
-				isActive: question.isActive(),
-				userHasVoted: question.hasVoted(user)
-			});
-		}
+	function canAddOpenQuestionOption(address user, uint256 deadline) public view override returns (bool) {
+		return defaultPoints.balanceAtTimestamp(user, deadline) >= minPointsToAddOpenQuestionOption;
+	}
 
+	/// @inheritdoc ISpace
+	function updateMinPointsToAddOpenQuestionOption(uint256 _minPointsToAddOpenQuestionOption) external override {
+		minPointsToAddOpenQuestionOption = _minPointsToAddOpenQuestionOption;
+		emit MinPointsToAddOpenQuestionOptionUpdated(_minPointsToAddOpenQuestionOption);
+	}
+
+	/// @dev Internal function to create SpaceData struct
+	/// @return SpaceData struct containing space information
+	function _spaceData() internal view returns (SpaceData memory) {
 		return
-			SpaceView({
+			SpaceData({
+				contractAddress: address(this),
 				name: spaceName,
 				description: spaceDescription,
 				imageUrl: spaceImageUrl,
-				stampView: followerStamp.getStampView(user),
-				points: PointsView({ addr: address(defaultPoints), userCurrentBalance: defaultPoints.balanceOf(user) }),
-				questions: questionPreviews
+				creationTimestamp: block.timestamp
+			});
+	}
+
+	/// @dev Internal function to create SpaceUser struct for a given user
+	/// @param user Address of the user
+	/// @return SpaceUser struct containing user roles and permissions
+	function _spaceUser(address user) internal view returns (SpaceUser memory) {
+		return
+			SpaceUser({
+				roles: RolesUser({
+					superAdmin: hasRole(SUPER_ADMIN_ROLE, user),
+					admin: hasRole(ADMIN_ROLE, user),
+					mod: hasRole(MODERATOR_ROLE, user)
+				}),
+				permissions: PermissionsUser({
+					UpdateSpaceInfo: checkPermission(PermissionName.UpdateSpaceInfo, user),
+					UpdateSpaceDefaultPoints: checkPermission(PermissionName.UpdateSpaceDefaultPoints, user),
+					UpdateQuestionInfo: checkPermission(PermissionName.UpdateQuestionInfo, user),
+					UpdateQuestionDeadline: checkPermission(PermissionName.UpdateQuestionDeadline, user),
+					UpdateQuestionPoints: checkPermission(PermissionName.UpdateQuestionPoints, user),
+					CreateFixedQuestion: checkPermission(PermissionName.CreateFixedQuestion, user),
+					CreateOpenQuestion: checkPermission(PermissionName.CreateOpenQuestion, user),
+					VetoFixedQuestion: checkPermission(PermissionName.VetoFixedQuestion, user),
+					VetoOpenQuestion: checkPermission(PermissionName.VetoOpenQuestion, user),
+					VetoOpenQuestionOption: checkPermission(PermissionName.VetoOpenQuestionOption, user),
+					LiftVetoFixedQuestion: checkPermission(PermissionName.LiftVetoFixedQuestion, user),
+					LiftVetoOpenQuestion: checkPermission(PermissionName.LiftVetoOpenQuestion, user),
+					LiftVetoOpenQuestionOption: checkPermission(PermissionName.LiftVetoOpenQuestionOption, user),
+					AddOpenQuestionOption: canAddOpenQuestionOption(user, block.timestamp)
+				})
+			});
+	}
+
+	/// @dev Internal function to create an array of QuestionPreview structs
+	/// @param user Address of the user
+	/// @return Array of QuestionPreview structs
+	function _questionsPreview(address user) internal view returns (IQuestionView.QuestionPreview[] memory) {
+		IQuestionView.QuestionPreview[] memory questionsPreview = new IQuestionView.QuestionPreview[](questions.length);
+		for (uint256 i = 0; i < questions.length; i++) {
+			questionsPreview[i] = questions[i].getQuestionPreview(user);
+		}
+		return questionsPreview;
+	}
+
+	/// @inheritdoc ISpaceView
+	function getSpacePreview(address user) external view override returns (SpacePreview memory) {
+		return SpacePreview({ data: _spaceData(), user: _spaceUser(user) });
+	}
+
+	/// @inheritdoc ISpaceView
+	function getSpaceView(address user) external view override returns (SpaceView memory) {
+		return
+			SpaceView({
+				data: _spaceData(),
+				user: _spaceUser(user),
+				points: defaultPoints.getPointsView(user),
+				questions: _questionsPreview(user)
 			});
 	}
 }

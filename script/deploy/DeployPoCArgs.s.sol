@@ -6,7 +6,9 @@ import { Script } from "forge-std/Script.sol";
 contract DeployPoCArgs is Script {
 	struct DeploymentArgs {
 		// Space args
-		address spaceOwner;
+		address[] initialSuperAdmins;
+		address[] initialAdmins;
+		address[] initialModerators;
 		address stampSigner;
 		string stampPlatform;
 		string stampFollowed;
@@ -16,9 +18,22 @@ contract DeployPoCArgs is Script {
 	}
 
 	function getArgs() public view returns (DeploymentArgs memory) {
+		address[] memory superAdmins = new address[](1);
+		superAdmins[0] = vm.envAddress("SUPER_ADMIN_ADDRESS");
+
+		// address[] memory superAdmins = new address[](1);
+		// superAdmins[0] = vm.envAddress("SUPER_ADMIN_ADDRESS");
+
+		// address[] memory admins = new address[](1);
+		// admins[0] = vm.envAddress("ADMIN_ADDRESS");
+
+		// address[] memory moderators = new address[](1);
+		// modulators[0] = vm.envAddress("MODERATOR_ADDRESS");
+
 		DeploymentArgs memory args = DeploymentArgs({
-			// Space args
-			spaceOwner: vm.envAddress("SPACES_OWNER_ADDRESS"),
+			initialSuperAdmins: superAdmins,
+			initialAdmins: new address[](0),
+			initialModerators: new address[](0),
 			stampSigner: vm.envAddress("EIP712_SIGNER_ADDRESS"),
 			stampPlatform: "Instagram",
 			stampFollowed: "base_onchain",

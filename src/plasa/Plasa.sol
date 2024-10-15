@@ -50,7 +50,8 @@ contract Plasa is Ownable {
 		string memory followed,
 		string memory spaceName,
 		string memory spaceDescription,
-		string memory spaceImageUrl
+		string memory spaceImageUrl,
+		string memory pointsSymbol
 	) external returns (address) {
 		ISpace newSpace = ISpace(
 			new Space(
@@ -62,7 +63,8 @@ contract Plasa is Ownable {
 				followed,
 				spaceName,
 				spaceDescription,
-				spaceImageUrl
+				spaceImageUrl,
+				pointsSymbol
 			)
 		);
 		spaces.push(newSpace);

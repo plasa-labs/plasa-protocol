@@ -33,7 +33,7 @@ contract DeployPoC is Script {
 			args.spaceName,
 			args.spaceDescription,
 			args.spaceImageUrl,
-			args.pointsName
+			args.pointsSymbol
 		);
 
 		vm.stopBroadcast();
@@ -64,7 +64,8 @@ contract DeployPoC is Script {
 		console.log('          "followed": "%s",', args.stampFollowed);
 		console.log('          "spaceName": "%s",', args.spaceName);
 		console.log('          "spaceDescription": "%s",', args.spaceDescription);
-		console.log('          "spaceImageUrl": "%s"', args.spaceImageUrl);
+		console.log('          "spaceImageUrl": "%s",', args.spaceImageUrl);
+		console.log('          "pointsSymbol": "%s"', args.pointsSymbol);
 		console.log("        }");
 		console.log("      }");
 		console.log("    },");

@@ -15,7 +15,7 @@ contract DeployPoCArgs is Script {
 		string spaceName;
 		string spaceDescription;
 		string spaceImageUrl;
-		string pointsName;
+		string pointsSymbol;
 	}
 
 	function getArgs() public view returns (DeploymentArgs memory) {
@@ -41,7 +41,7 @@ contract DeployPoCArgs is Script {
 			spaceName: "Base",
 			spaceDescription: "The (un)official community space for Base Onchain community",
 			spaceImageUrl: "https://raw.githubusercontent.com/base-org/brand-kit/refs/heads/main/logo/in-product/Base_Network_Logo.png",
-			pointsName: "BASE"
+			pointsSymbol: "BASE"
 		});
 
 		return args;

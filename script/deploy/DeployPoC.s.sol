@@ -32,7 +32,8 @@ contract DeployPoC is Script {
 			args.stampFollowed,
 			args.spaceName,
 			args.spaceDescription,
-			args.spaceImageUrl
+			args.spaceImageUrl,
+			args.pointsName
 		);
 
 		vm.stopBroadcast();

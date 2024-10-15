@@ -23,7 +23,9 @@ contract DeployPoC is Script {
 
 		// Deploy Space
 		Space space = new Space(
-			args.spaceOwner,
+			args.initialSuperAdmins,
+			args.initialAdmins,
+			args.initialModerators,
 			args.stampSigner,
 			args.stampPlatform,
 			args.stampFollowed,
@@ -36,7 +38,7 @@ contract DeployPoC is Script {
 
 		// Retrieve Stamp and Points contract addresses
 		IFollowerSinceStamp stamp = space.followerStamp();
-		IFollowerSincePoints points = space.followerPoints();
+		IFollowerSincePoints points = space.defaultPoints();
 
 		// Log deployment information in JSON format
 		console.log("DEPLOYMENT_LOG_START");

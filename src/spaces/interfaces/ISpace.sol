@@ -6,39 +6,13 @@ import { IFollowerSinceStamp } from "../../stamps/interfaces/IFollowerSinceStamp
 import { IFollowerSincePoints } from "../../points/interfaces/IFollowerSincePoints.sol";
 import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
 import { IStampView } from "../../stamps/interfaces/IStampView.sol";
+import { IQuestionView } from "../../voting/interfaces/IQuestionView.sol";
+import { ISpaceView } from "./ISpaceView.sol";
 
 /// @title ISpace - Interface for managing community spaces in Plasa
 /// @notice This interface defines the structure for managing follower stamps, points, and questions within a space
 /// @dev Implement this interface to create a space contract that represents a community or organization using Plasa
-interface ISpace is ISpaceAccessControl {
-	// Structs
-
-	/// @notice Represents a comprehensive view of a space
-	struct SpaceView {
-		string name;
-		string description;
-		string imageUrl;
-		IStampView.StampView stampView;
-		PointsView points;
-		QuestionPreview[] questions;
-	}
-
-	/// @notice Represents a view of the points system associated with the space
-	struct PointsView {
-		address addr;
-		uint256 userCurrentBalance;
-	}
-
-	/// @notice Represents a preview of a question in the space
-	struct QuestionPreview {
-		address addr;
-		string title;
-		string description;
-		uint256 deadline;
-		bool isActive;
-		bool userHasVoted;
-	}
-
+interface ISpace is ISpaceAccessControl, ISpaceView {
 	// Events
 
 	/// @notice Emitted when a new FollowerSinceStamp contract is deployed
@@ -145,11 +119,6 @@ interface ISpace is ISpaceAccessControl {
 	/// @notice Gets the total number of deployed questions
 	/// @return The number of deployed questions
 	function getQuestionCount() external view returns (uint256);
-
-	/// @notice Gets a comprehensive view of the space for a given user
-	/// @param user The address of the user to get the view for
-	/// @return A SpaceView struct containing all relevant information about the space
-	function getSpaceView(address user) external view returns (SpaceView memory);
 
 	/// @notice Returns the default FollowerSincePoints contract associated with this space
 	/// @return The IFollowerSincePoints interface of the associated default points contract

@@ -11,6 +11,7 @@ import { FollowerSinceStamp } from "../stamps/FollowerSinceStamp.sol";
 import { FollowerSincePoints } from "../points/FollowerSincePoints.sol";
 import { SpaceAccessControl } from "./SpaceAccessControl.sol";
 import { IQuestionView } from "../voting/interfaces/IQuestionView.sol";
+import { ISpaceView } from "./interfaces/ISpaceView.sol";
 
 /// @title Space - A contract for managing community spaces in Plasa
 /// @notice This contract represents a space, organization, or leader using Plasa for their community

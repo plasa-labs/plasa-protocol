@@ -8,27 +8,30 @@ export enum StampType {
 
 export interface StampData {
 	contractAddress: AccountAddress
+	space: AccountAddress
 	type: StampType
 	name: string
 	symbol: string
 	platform: string
 	totalSupply: number
+	specific?: string
 }
 
 export interface StampUser {
 	owns: boolean
 	stampId?: number
 	mintingTimestamp?: Timestamp
+	specific?: string
 }
 
-export interface Stamp {
+export interface StampView {
 	data: StampData
 	user: StampUser
 }
 
 export interface FollowerSinceStampData extends StampData {
 	followedAccount: string
-	space: string
+	space: AccountAddress
 }
 
 export interface FollowerSinceStampUser extends StampUser {
@@ -36,11 +39,9 @@ export interface FollowerSinceStampUser extends StampUser {
 	timeSinceFollow: Timestamp
 }
 
-export interface FollowerSinceStamp extends Stamp {
+export interface FollowerSinceStamp extends StampView {
 	data: FollowerSinceStampData
 	user: FollowerSinceStampUser
 }
 
-export interface AccountOwnershipStamp extends Stamp {
-	userUsername?: string
-}
+export interface AccountOwnershipStamp extends StampView { }

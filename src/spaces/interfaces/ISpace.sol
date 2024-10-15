@@ -5,8 +5,6 @@ import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
 import { IFollowerSinceStamp } from "../../stamps/interfaces/IFollowerSinceStamp.sol";
 import { IFollowerSincePoints } from "../../points/interfaces/IFollowerSincePoints.sol";
 import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
-import { IStampView } from "../../stamps/interfaces/IStampView.sol";
-import { IQuestionView } from "../../voting/interfaces/IQuestionView.sol";
 import { ISpaceView } from "./ISpaceView.sol";
 
 /// @title ISpace - Interface for managing community spaces in Plasa

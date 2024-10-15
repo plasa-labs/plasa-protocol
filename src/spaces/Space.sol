@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { ISpace } from "./interfaces/ISpace.sol";
-import { IFollowerSinceStamp } from "../stamps/interfaces/IFollowerSinceStamp.sol";
-import { IFollowerSincePoints } from "../points/interfaces/IFollowerSincePoints.sol";
-import { IQuestion } from "../voting/interfaces/IQuestion.sol";
+import { ISpace, ISpaceView } from "./interfaces/ISpace.sol";
+import { IQuestion, IQuestionView } from "../voting/interfaces/IQuestion.sol";
+import { FollowerSinceStamp, IFollowerSinceStamp } from "../stamps/FollowerSinceStamp.sol";
+import { FollowerSincePoints, IFollowerSincePoints } from "../points/FollowerSincePoints.sol";
+import { SpaceAccessControl } from "./SpaceAccessControl.sol";
 import { FixedQuestion } from "../voting/FixedQuestion.sol";
 import { OpenQuestion } from "../voting/OpenQuestion.sol";
-import { FollowerSinceStamp } from "../stamps/FollowerSinceStamp.sol";
-import { FollowerSincePoints } from "../points/FollowerSincePoints.sol";
-import { SpaceAccessControl } from "./SpaceAccessControl.sol";
-import { IQuestionView } from "../voting/interfaces/IQuestionView.sol";
-import { ISpaceView } from "./interfaces/ISpaceView.sol";
 
 /// @title Space - A contract for managing community spaces in Plasa
 /// @notice This contract represents a space, organization, or leader using Plasa for their community
@@ -72,7 +68,7 @@ contract Space is ISpace, SpaceAccessControl {
 	/// @inheritdoc ISpace
 	function updateDefaultPoints(
 		address newDefaultPoints
-	) external override onlyAllowed(PermissionName.UpdateSpaceDefaultPoints) {
+	) external override onlyAllowed(PermissionName.UpdateSpacePoints) {
 		require(newDefaultPoints != address(0), "New default points address cannot be zero");
 		defaultPoints = IFollowerSincePoints(newDefaultPoints);
 		emit DefaultPointsUpdated(newDefaultPoints);
@@ -149,14 +145,16 @@ contract Space is ISpace, SpaceAccessControl {
 	}
 
 	/// @inheritdoc ISpace
-	function updateMinPointsToAddOpenQuestionOption(uint256 _minPointsToAddOpenQuestionOption) external override {
+	function updateMinPointsToAddOpenQuestionOption(
+		uint256 _minPointsToAddOpenQuestionOption
+	) external override onlyAllowed(PermissionName.UpdateSpacePoints) {
 		minPointsToAddOpenQuestionOption = _minPointsToAddOpenQuestionOption;
 		emit MinPointsToAddOpenQuestionOptionUpdated(_minPointsToAddOpenQuestionOption);
 	}
 
 	/// @dev Internal function to create SpaceData struct
 	/// @return SpaceData struct containing space information
-	function _spaceData() internal view returns (SpaceData memory) {
+	function _spaceData() private view returns (SpaceData memory) {
 		return
 			SpaceData({
 				contractAddress: address(this),
@@ -170,7 +168,7 @@ contract Space is ISpace, SpaceAccessControl {
 	/// @dev Internal function to create SpaceUser struct for a given user
 	/// @param user Address of the user
 	/// @return SpaceUser struct containing user roles and permissions
-	function _spaceUser(address user) internal view returns (SpaceUser memory) {
+	function _spaceUser(address user) private view returns (SpaceUser memory) {
 		return
 			SpaceUser({
 				roles: RolesUser({
@@ -180,7 +178,7 @@ contract Space is ISpace, SpaceAccessControl {
 				}),
 				permissions: PermissionsUser({
 					UpdateSpaceInfo: checkPermission(PermissionName.UpdateSpaceInfo, user),
-					UpdateSpaceDefaultPoints: checkPermission(PermissionName.UpdateSpaceDefaultPoints, user),
+					UpdateSpacePoints: checkPermission(PermissionName.UpdateSpacePoints, user),
 					UpdateQuestionInfo: checkPermission(PermissionName.UpdateQuestionInfo, user),
 					UpdateQuestionDeadline: checkPermission(PermissionName.UpdateQuestionDeadline, user),
 					UpdateQuestionPoints: checkPermission(PermissionName.UpdateQuestionPoints, user),
@@ -200,7 +198,7 @@ contract Space is ISpace, SpaceAccessControl {
 	/// @dev Internal function to create an array of QuestionPreview structs
 	/// @param user Address of the user
 	/// @return Array of QuestionPreview structs
-	function _questionsPreview(address user) internal view returns (IQuestionView.QuestionPreview[] memory) {
+	function _questionsPreview(address user) private view returns (IQuestionView.QuestionPreview[] memory) {
 		IQuestionView.QuestionPreview[] memory questionsPreview = new IQuestionView.QuestionPreview[](questions.length);
 		for (uint256 i = 0; i < questions.length; i++) {
 			questionsPreview[i] = questions[i].getQuestionPreview(user);

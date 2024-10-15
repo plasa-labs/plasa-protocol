@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { IPoints } from "../../points/interfaces/IPoints.sol";
 import { IQuestionView } from "./IQuestionView.sol";
 
 /// @title Question Interface for a Decentralized Voting System

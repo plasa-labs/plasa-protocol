@@ -2,8 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { Question } from "./Question.sol";
-import { IOpenQuestion } from "./interfaces/IOpenQuestion.sol";
-import { IQuestion } from "./interfaces/IQuestion.sol";
+import { IOpenQuestion, IQuestion } from "./interfaces/IOpenQuestion.sol";
 
 /// @title OpenQuestion Contract
 /// @dev Implements an open-ended question where users can add options and vote

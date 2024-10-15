@@ -2,6 +2,7 @@ import { AccountAddress, Timestamp } from './basic'
 import { Option } from './options'
 
 export enum QuestionType {
+	Null = 'Null',
 	Open = 'Open',
 	Fixed = 'Fixed',
 }

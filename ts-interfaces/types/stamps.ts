@@ -1,6 +1,7 @@
 import { AccountAddress, Timestamp } from './basic'
 
 export enum StampType {
+	Null = 'Null',
 	AccountOwnership = 'AccountOwnership',
 	FollowerSince = 'FollowerSince',
 }

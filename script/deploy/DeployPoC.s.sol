@@ -7,6 +7,7 @@ import { ISpace } from "../../src/spaces/interfaces/ISpace.sol";
 import { DeployPoCArgs } from "./DeployPoCArgs.s.sol";
 import { IFollowerSinceStamp } from "../../src/stamps/interfaces/IFollowerSinceStamp.sol";
 import { IFollowerSincePoints } from "../../src/points/interfaces/IFollowerSincePoints.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract DeployPoC is Script {
 	function run() public {
@@ -54,10 +55,12 @@ contract DeployPoC is Script {
 		console.log('        "contractName": "Space",');
 		console.log('        "sourcePath": "src/spaces/Space.sol",');
 		console.log('        "arguments": {');
-		console.log('          "spaceOwner": "%s",', args.spaceOwner);
+		console.log('          "initialSuperAdmins": %s,', _formatAddressArray(args.initialSuperAdmins));
+		console.log('          "initialAdmins": %s,', _formatAddressArray(args.initialAdmins));
+		console.log('          "initialModerators": %s,', _formatAddressArray(args.initialModerators));
 		console.log('          "stampSigner": "%s",', args.stampSigner);
-		console.log('          "stampPlatform": "%s",', args.stampPlatform);
-		console.log('          "stampFollowed": "%s",', args.stampFollowed);
+		console.log('          "platform": "%s",', args.stampPlatform);
+		console.log('          "followed": "%s",', args.stampFollowed);
 		console.log('          "spaceName": "%s",', args.spaceName);
 		console.log('          "spaceDescription": "%s",', args.spaceDescription);
 		console.log('          "spaceImageUrl": "%s"', args.spaceImageUrl);
@@ -93,5 +96,17 @@ contract DeployPoC is Script {
 		console.log("  ]");
 		console.log("}");
 		console.log("DEPLOYMENT_LOG_END");
+	}
+
+	function _formatAddressArray(address[] memory addresses) internal pure returns (string memory) {
+		bytes memory result = "[";
+		for (uint i = 0; i < addresses.length; i++) {
+			if (i > 0) {
+				result = abi.encodePacked(result, ",");
+			}
+			result = abi.encodePacked(result, '"', Strings.toHexString(uint160(addresses[i]), 20), '"');
+		}
+		result = abi.encodePacked(result, "]");
+		return string(result);
 	}
 }

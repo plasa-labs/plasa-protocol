@@ -34,6 +34,7 @@ contract Space is ISpace, SpaceAccessControl {
 	/// @param _spaceName The name of the space
 	/// @param _spaceDescription The description of the space
 	/// @param _spaceImageUrl The URL of the space's image
+	/// @param _pointsSymbol The symbol for the space's points
 	constructor(
 		address[] memory initialSuperAdmins,
 		address[] memory initialAdmins,
@@ -43,7 +44,8 @@ contract Space is ISpace, SpaceAccessControl {
 		string memory followed,
 		string memory _spaceName,
 		string memory _spaceDescription,
-		string memory _spaceImageUrl
+		string memory _spaceImageUrl,
+		string memory _pointsSymbol
 	) SpaceAccessControl(initialSuperAdmins, initialAdmins, initialModerators) {
 		spaceName = _spaceName;
 		spaceDescription = _spaceDescription;
@@ -56,7 +58,7 @@ contract Space is ISpace, SpaceAccessControl {
 		// Deploy FollowerSincePoints contract
 		string memory pointsName = string(abi.encodePacked(_spaceName, " Points"));
 		defaultPoints = IFollowerSincePoints(
-			address(new FollowerSincePoints(address(followerStamp), pointsName, "POINT"))
+			address(new FollowerSincePoints(address(followerStamp), pointsName, _pointsSymbol))
 		);
 		emit FollowerPointsDeployed(address(defaultPoints));
 	}

@@ -20,19 +20,19 @@ interface ISpaceView {
 	/// @notice Struct containing user roles and permissions for a Space
 	/// @dev Used in SpacePreview and SpaceView
 	struct SpaceUser {
-		Roles roles;
-		Permissions permissions;
+		RolesUser roles;
+		PermissionsUser permissions;
 	}
 
 	/// @notice Struct defining user roles within a Space
-	struct Roles {
+	struct RolesUser {
 		bool superAdmin;
 		bool admin;
 		bool mod;
 	}
 
 	/// @notice Struct defining user permissions within a Space
-	struct Permissions {
+	struct PermissionsUser {
 		bool UpdateSpaceInfo;
 		bool UpdateSpaceDefaultPoints;
 		bool UpdateQuestionInfo;

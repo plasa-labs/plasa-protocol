@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { Stamp } from "./Stamp.sol";
+import { Stamp, IStampView } from "./Stamp.sol";
 import { IAccountOwnershipStamp } from "./interfaces/IAccountOwnershipStamp.sol";
-import { IStampView } from "./interfaces/IStampView.sol";
 
 /// @title AccountOwnershipStamp
 /// @notice A contract for minting and managing account ownership stamps on specific platforms

@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { Stamp } from "./Stamp.sol";
+import { Stamp, IStampView } from "./Stamp.sol";
 import { IFollowerSinceStamp } from "./interfaces/IFollowerSinceStamp.sol";
-import { IStampView } from "./interfaces/IStampView.sol";
 
 /// @title FollowerSinceStamp
 /// @notice A contract for minting NFTs that represent a user's follower status since a specific date

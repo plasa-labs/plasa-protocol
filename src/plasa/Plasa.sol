@@ -40,6 +40,8 @@ contract Plasa is Ownable {
 	/// @param spaceName The name of the space
 	/// @param spaceDescription The description of the space
 	/// @param spaceImageUrl The URL of the space's image
+	/// @param pointsSymbol The symbol of the points
+	/// @param minPointsToAddOpenQuestionOption The minimum points required to add an open question option
 	/// @return The address of the newly created space
 	function createSpace(
 		address[] memory initialSuperAdmins,
@@ -51,21 +53,21 @@ contract Plasa is Ownable {
 		string memory spaceName,
 		string memory spaceDescription,
 		string memory spaceImageUrl,
-		string memory pointsSymbol
+		string memory pointsSymbol,
+		uint256 minPointsToAddOpenQuestionOption
 	) external returns (address) {
-		ISpace newSpace = ISpace(
-			new Space(
-				initialSuperAdmins,
-				initialAdmins,
-				initialModerators,
-				stampSigner,
-				platform,
-				followed,
-				spaceName,
-				spaceDescription,
-				spaceImageUrl,
-				pointsSymbol
-			)
+		ISpace newSpace = new Space(
+			initialSuperAdmins,
+			initialAdmins,
+			initialModerators,
+			stampSigner,
+			platform,
+			followed,
+			spaceName,
+			spaceDescription,
+			spaceImageUrl,
+			pointsSymbol,
+			minPointsToAddOpenQuestionOption
 		);
 		spaces.push(newSpace);
 		emit SpaceCreated(address(newSpace), msg.sender);

@@ -33,7 +33,8 @@ contract DeployPoC is Script {
 			args.spaceName,
 			args.spaceDescription,
 			args.spaceImageUrl,
-			args.pointsSymbol
+			args.pointsSymbol,
+			args.minPointsToAddOpenQuestionOption
 		);
 
 		vm.stopBroadcast();

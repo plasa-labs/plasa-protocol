@@ -6,18 +6,18 @@ import { IStampView } from "./IStampView.sol";
 
 /// @title IStamp Interface
 /// @notice This interface defines the contract for a non-transferable ERC721 token called "Stamp"
-/// @dev Inherits from IERC721Enumerable, adding custom functionality for minting and ownership
+/// @dev Inherits from IERC721Enumerable and IStampView, adding custom functionality for minting and ownership
 interface IStamp is IERC721Enumerable, IStampView {
 	/// @notice Thrown when a user attempts to mint a stamp they already own
-	/// @param user The address of the user
+	/// @param user The address of the user attempting to mint
 	/// @param stampId The ID of the existing stamp
 	error AlreadyMintedStamp(address user, uint256 stampId);
 
-	/// @notice Thrown when the provided signature is invalid
+	/// @notice Thrown when the provided signature for minting is invalid
 	error InvalidSignature();
 
 	/// @notice Thrown when the deadline for minting has expired
-	/// @param deadline The timestamp of the deadline
+	/// @param deadline The timestamp of the minting deadline
 	/// @param currentTimestamp The current block timestamp
 	error DeadlineExpired(uint256 deadline, uint256 currentTimestamp);
 
@@ -30,16 +30,36 @@ interface IStamp is IERC721Enumerable, IStampView {
 
 	/// @notice Returns the address of the signer authorized to sign minting requests
 	/// @return The address of the authorized signer
+	/// @dev This function should be implemented to return the current authorized signer's address
 	function signer() external view returns (address);
+
+	/// @notice The platform identifier for this stamp
+	/// @dev This function should return a unique identifier for the platform (e.g., "Twitter", "GitHub")
+	function PLATFORM() external view returns (string memory);
 
 	/// @notice Retrieves the minting date of a specific token
 	/// @param tokenId The ID of the token to query
 	/// @return The timestamp when the token was minted
-	/// @dev Reverts with TokenDoesNotExist if the token does not exist
-	function getMintDate(uint256 tokenId) external view returns (uint256);
+	function mintingTimestamps(uint256 tokenId) external view returns (uint256);
 
-	// Note: The following functions are not explicitly defined here but are inherited from IERC721Enumerable:
-	// - tokenOfOwnerByIndex(address owner, uint256 index) → uint256
-	// - totalSupply() → uint256
-	// - tokenByIndex(uint256 index) → uint256
+	/// @notice Retrieves the type of stamp
+	/// @return The type of stamp
+	function stampType() external view returns (IStampView.StampType);
+
+	// The following functions are inherited from IERC721Enumerable:
+
+	/// @notice Returns the token ID at a given index of the tokens list of the requested owner
+	/// @param owner Address owning the tokens list to be accessed
+	/// @param index Index of the token to be returned
+	/// @return The token ID at the given index of the tokens list owned by the requested address
+	// function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
+
+	/// @notice Returns the total amount of tokens stored by the contract
+	/// @return The total number of tokens
+	// function totalSupply() external view returns (uint256);
+
+	/// @notice Returns a token ID at a given index of all the tokens stored by the contract
+	/// @param index Index of the token to be returned
+	/// @return The token ID at the given index
+	// function tokenByIndex(uint256 index) external view returns (uint256);
 }

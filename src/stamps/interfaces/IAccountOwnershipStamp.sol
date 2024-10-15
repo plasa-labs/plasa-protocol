@@ -41,9 +41,6 @@ interface IAccountOwnershipStamp is IStamp {
 	}
 
 	// Functions
-	/// @notice The platform identifier for this stamp
-	/// @dev This function should return a unique identifier for the platform (e.g., "Twitter", "GitHub")
-	function PLATFORM() external view returns (string memory);
 
 	/// @notice Mints a new account ownership stamp
 	/// @dev This function is called to create a new stamp proving ownership of an account
@@ -52,10 +49,4 @@ interface IAccountOwnershipStamp is IStamp {
 	/// @param signature The signature authorizing the minting, typically signed by a trusted authority
 	/// @return The ID of the newly minted stamp
 	function mintStamp(string calldata id, uint256 deadline, bytes calldata signature) external returns (uint256);
-
-	/// @notice Returns a view of the AccountOwnershipStamp for a given user
-	/// @dev This function provides a comprehensive view of the stamp's state and the user's relationship to it
-	/// @param user The address of the user to check
-	/// @return view The AccountOwnershipStampView struct containing stamp information
-	function getAccountOwnershipStampView(address user) external view returns (AccountOwnershipStampView memory);
 }

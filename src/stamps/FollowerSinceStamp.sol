@@ -3,14 +3,12 @@ pragma solidity ^0.8.20;
 
 import { Stamp } from "./Stamp.sol";
 import { IFollowerSinceStamp } from "./interfaces/IFollowerSinceStamp.sol";
+import { IStampView } from "./interfaces/IStampView.sol";
 
 /// @title FollowerSinceStamp
 /// @notice A contract for minting NFTs that represent a user's follower status since a specific date
 /// @dev Inherits from Stamp and implements IFollowerSinceStamp interface
 contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
-	/// @inheritdoc IFollowerSinceStamp
-	string public override PLATFORM;
-
 	/// @inheritdoc IFollowerSinceStamp
 	string public override FOLLOWED;
 
@@ -18,15 +16,26 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	mapping(uint256 stampId => uint256 timestamp) public override followStartTimestamp;
 
 	/// @notice Initializes the FollowerSinceStamp contract
+	/// @param _space The address of the space this stamp is associated with
 	/// @param _signer The address authorized to sign mint requests
 	/// @param _platform The platform where the following relationship exists
 	/// @param _followed The account being followed
 	constructor(
+		address _space,
 		address _signer,
 		string memory _platform,
 		string memory _followed
-	) Stamp("Follower Since Stamp", "FSS", "0.1.0", _signer) {
-		PLATFORM = _platform;
+	)
+		Stamp(
+			_space,
+			string.concat(_followed, " ", _platform, " Follower"),
+			"FOLLOW",
+			"0.1.0",
+			_signer,
+			IStampView.StampType.FollowerSince,
+			_platform
+		)
+	{
 		FOLLOWED = _followed;
 	}
 
@@ -53,7 +62,7 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	}
 
 	/// @inheritdoc IFollowerSinceStamp
-	function getFollowerSinceTimestamp(address follower) external view override returns (uint256) {
+	function getFollowerSinceTimestamp(address follower) public view override returns (uint256) {
 		try this.tokenOfOwnerByIndex(follower, 0) returns (uint256 stampId) {
 			return followStartTimestamp[stampId];
 		} catch {
@@ -61,31 +70,14 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		}
 	}
 
-	/// @inheritdoc IFollowerSinceStamp
-	function getFollowerSinceStampView(
-		address user
-	) external view override returns (FollowerSinceStampView memory stampView) {
-		stampView.stampAddress = address(this);
-		stampView.totalSupply = totalSupply();
-		stampView.stampName = name();
-		stampView.stampSymbol = symbol();
-		stampView.platform = PLATFORM;
-		stampView.followedAccount = FOLLOWED;
-
-		uint256 balance = balanceOf(user);
-		stampView.userHasStamp = balance > 0;
-
-		if (stampView.userHasStamp) {
-			uint256 stampId = tokenOfOwnerByIndex(user, 0);
-			stampView.userStampId = stampId;
-			stampView.userMintingDate = _mintDates[stampId];
-			stampView.userFollowerSince = followStartTimestamp[stampId];
-			stampView.timeSinceFollow = block.timestamp - stampView.userFollowerSince;
-		}
+	function _specificData() internal view override returns (bytes memory) {
+		return abi.encode(FOLLOWED);
 	}
 
-	/// @notice Generates a hash of the typed data for signature verification
-	/// @dev Overrides the base Stamp contract's getTypedDataHash function
+	function _specificUser(address user) internal view override returns (bytes memory) {
+		return bytes(abi.encode(getFollowerSinceTimestamp(user)));
+	}
+
 	/// @inheritdoc Stamp
 	function _getTypedDataHash(bytes memory data) internal pure override returns (bytes32) {
 		(

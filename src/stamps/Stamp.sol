@@ -5,45 +5,58 @@ import { ERC721, ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/e
 import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { IStamp } from "./interfaces/IStamp.sol";
+import { IStampView } from "./interfaces/IStampView.sol";
+import { ISpace } from "../spaces/interfaces/ISpace.sol";
 
-/// @title Stamp
-/// @notice Abstract contract for non-transferable ERC721 tokens (stamps) with signature-based minting
+/// @title Stamp - Non-transferable ERC721 tokens with signature-based minting
+/// @notice This contract implements non-transferable ERC721 tokens called "Stamps" with signature-based minting
 /// @dev Inherits from ERC721Enumerable for token enumeration, EIP712 for structured data signing, and IStamp interface
 abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	using ECDSA for bytes32;
 
-	/// @notice Address authorized to sign minting requests
-	/// @dev Immutable to ensure it cannot be changed after deployment
+	/// @inheritdoc IStamp
 	address public immutable override signer;
 
-	/// @notice Mapping to store the minting date for each token
-	mapping(uint256 => uint256) internal _mintDates;
+	/// @inheritdoc IStamp
+	mapping(uint256 => uint256) public mintingTimestamps;
+
+	/// @inheritdoc IStamp
+	IStampView.StampType public stampType;
+
+	/// @notice The platform this stamp is associated with (e.g., "Twitter", "GitHub")
+	string public PLATFORM;
+
+	/// @notice The address of the space this stamp is associated with
+	ISpace public space;
 
 	/// @notice Initializes the Stamp contract
+	/// @dev Sets up the ERC721 token, EIP712 domain separator, and stamp-specific properties
+	/// @param _space The address of the space this stamp is associated with
 	/// @param stampName Name of the stamp collection
 	/// @param stampSymbol Symbol of the stamp collection
 	/// @param eip712version Version string for EIP712 domain separator
 	/// @param _signer Address authorized to sign minting requests
+	/// @param _stampType The type of stamp
 	constructor(
+		address _space,
 		string memory stampName,
 		string memory stampSymbol,
 		string memory eip712version,
-		address _signer
+		address _signer,
+		IStampView.StampType _stampType,
+		string memory _platform
 	) ERC721(stampName, stampSymbol) EIP712("Plasa Stamps", eip712version) {
+		space = ISpace(_space);
+		PLATFORM = _platform;
 		signer = _signer;
-	}
-
-	/// @inheritdoc IStamp
-	function getMintDate(uint256 tokenId) public view override returns (uint256) {
-		if (_mintDates[tokenId] == 0) revert TokenDoesNotExist(tokenId);
-		return _mintDates[tokenId];
+		stampType = _stampType;
 	}
 
 	/// @notice Computes the typed data hash for signature verification
 	/// @dev Must be implemented by derived contracts to define the structure of the signed data
 	/// @param data The encoded data to be hashed
-	/// @return The computed hash
-	function _getTypedDataHash(bytes memory data) internal view virtual returns (bytes32);
+	/// @return bytes32 The computed hash
+	function _getTypedDataHash(bytes memory data) internal pure virtual returns (bytes32);
 
 	/// @notice Internal function to mint a new stamp
 	/// @dev Checks deadline, verifies signature, ensures one stamp per address, and mints
@@ -51,7 +64,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @param data Encoded data for signature verification
 	/// @param signature Signature authorizing the mint
 	/// @param deadline Timestamp after which the signature is no longer valid
-	/// @return The ID of the newly minted stamp
+	/// @return uint256 The ID of the newly minted stamp
 	function _mintStamp(
 		address to,
 		bytes memory data,
@@ -76,7 +89,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 		// Mint the new stamp
 		uint256 newStampId = totalSupply() + 1;
 		_safeMint(to, newStampId);
-		_mintDates[newStampId] = block.timestamp;
+		mintingTimestamps[newStampId] = block.timestamp;
 
 		return newStampId;
 	}
@@ -85,9 +98,41 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @dev Uses EIP712 for structured data hashing and signature recovery
 	/// @param data Encoded data that was signed
 	/// @param signature Signature to verify
-	/// @return Boolean indicating whether the signature is valid
-	function _verifySignature(bytes memory data, bytes calldata signature) internal view returns (bool) {
+	/// @return bool Indicating whether the signature is valid
+	function _verifySignature(bytes memory data, bytes calldata signature) private view returns (bool) {
 		return signer == _hashTypedDataV4(_getTypedDataHash(data)).recover(signature);
+	}
+
+	function _specificData() internal view virtual returns (bytes memory);
+
+	function _specificUser(address user) internal view virtual returns (bytes memory);
+
+	/// @notice Returns the user's stamp data
+	/// @dev This function is used to get the user's stamp data
+	/// @param user The address of the user
+	/// @return IStampView.StampUser memory The user's stamp data
+	function _stampUser(address user) private view returns (IStampView.StampUser memory) {
+		uint256 tokenId = tokenOfOwnerByIndex(user, 0);
+		return IStampView.StampUser(true, tokenId, mintingTimestamps[tokenId], _specificUser(user));
+	}
+
+	function _stampData() private view returns (IStampView.StampData memory) {
+		return
+			IStampView.StampData(
+				address(this),
+				address(space),
+				stampType,
+				name(),
+				symbol(),
+				PLATFORM,
+				totalSupply(),
+				_specificData()
+			);
+	}
+
+	/// @inheritdoc IStampView
+	function getStampView(address user) external view returns (IStampView.StampView memory) {
+		return IStampView.StampView(_stampData(), _stampUser(user));
 	}
 
 	// ============================
@@ -96,12 +141,14 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 
 	/// @notice Disable approvals
 	/// @dev Overrides OpenZeppelin's _approve function to prevent token approvals
+	/// @inheritdoc ERC721
 	function _approve(address, uint256, address, bool) internal pure override {
 		revert NonTransferableStamp();
 	}
 
 	/// @notice Disable setting approval for all
 	/// @dev Overrides OpenZeppelin's _setApprovalForAll function to prevent operator approvals
+	/// @inheritdoc ERC721
 	function _setApprovalForAll(address, address, bool) internal pure override {
 		revert NonTransferableStamp();
 	}
@@ -111,7 +158,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @param to Address to mint to or transfer to (only minting is allowed)
 	/// @param tokenId ID of the token being minted or transferred
 	/// @param auth Address initiating the update (address(0) for minting)
-	/// @return The address of the previous owner (always address(0) for minting)
+	/// @return address The address of the previous owner (always address(0) for minting)
 	function _update(address to, uint256 tokenId, address auth) internal virtual override returns (address) {
 		// Only allow minting (auth == address(0)), revert on transfer attempts
 		if (auth != address(0)) {

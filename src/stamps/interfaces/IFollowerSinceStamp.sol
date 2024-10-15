@@ -46,9 +46,6 @@ interface IFollowerSinceStamp is IStamp {
 	/// @notice Error thrown when a follower attempts to mint more than one stamp
 	error FollowerAlreadyMinted();
 
-	/// @notice The platform where the following relationship exists
-	function PLATFORM() external view returns (string memory);
-
 	/// @notice The account being followed
 	function FOLLOWED() external view returns (string memory);
 
@@ -72,9 +69,4 @@ interface IFollowerSinceStamp is IStamp {
 	/// @param follower The address of the follower
 	/// @return The timestamp when the following relationship started, or 0 if not found
 	function getFollowerSinceTimestamp(address follower) external view returns (uint256);
-
-	/// @notice Retrieves a comprehensive view of the FollowerSinceStamp for a given user
-	/// @param user The address of the user to check
-	/// @return A FollowerSinceStampView struct containing all relevant information
-	function getFollowerSinceStampView(address user) external view returns (FollowerSinceStampView memory);
 }

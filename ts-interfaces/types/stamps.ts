@@ -17,7 +17,7 @@ export interface StampData {
 
 export interface StampUser {
 	owns: boolean
-	stampId?: string
+	stampId?: number
 	mintingTimestamp?: Timestamp
 }
 
@@ -33,7 +33,7 @@ export interface FollowerSinceStampData extends StampData {
 
 export interface FollowerSinceStampUser extends StampUser {
 	followTimestamp: Timestamp
-	timeSinceFollow: number
+	timeSinceFollow: Timestamp
 }
 
 export interface FollowerSinceStamp extends Stamp {

@@ -22,7 +22,7 @@ const examplePlasaQuery: Plasa = {
 			},
 			user: {
 				owns: true,
-				stampId: "123456",
+				stampId: 123456,
 				mintingTimestamp: 1625097600000
 			},
 			userUsername: "alice_twitter"
@@ -40,7 +40,7 @@ const examplePlasaQuery: Plasa = {
 			},
 			user: {
 				owns: true,
-				stampId: "789012",
+				stampId: 789012,
 				mintingTimestamp: 1625184000000,
 				followTimestamp: 1625097600000,
 				timeSinceFollow: 86400000 // 1 day in milliseconds

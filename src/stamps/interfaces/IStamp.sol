@@ -2,11 +2,12 @@
 pragma solidity ^0.8.20;
 
 import { IERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import { IStampView } from "./IStampView.sol";
 
 /// @title IStamp Interface
 /// @notice This interface defines the contract for a non-transferable ERC721 token called "Stamp"
 /// @dev Inherits from IERC721Enumerable, adding custom functionality for minting and ownership
-interface IStamp is IERC721Enumerable {
+interface IStamp is IERC721Enumerable, IStampView {
 	/// @notice Thrown when a user attempts to mint a stamp they already own
 	/// @param user The address of the user
 	/// @param stampId The ID of the existing stamp

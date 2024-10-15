@@ -3,10 +3,11 @@ pragma solidity ^0.8.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IPointsView } from "./IPointsView.sol";
 
 /// @title IPoints - Interface for a non-transferable ERC20-like token
 /// @notice This interface defines the functions for a non-transferable token system
-interface IPoints is IERC20Metadata {
+interface IPoints is IERC20Metadata, IPointsView {
 	/// @notice Error thrown when attempting to transfer tokens
 	error NonTransferable();
 

@@ -96,50 +96,6 @@ abstract contract Question is Ownable, IQuestion {
 		return options[optionId];
 	}
 
-	/// @inheritdoc IQuestion
-	function getQuestionView(address user) external view returns (QuestionView memory) {
-		uint256 totalVotes = 0;
-		// Adjust the array size to exclude the empty option at index 0
-		OptionView[] memory optionViews = new OptionView[](options.length - 1);
-		uint256 userOptionVoted = 0;
-
-		// Start the loop from index 1 to skip the empty option
-		for (uint256 i = 1; i < options.length; i++) {
-			uint256 voteCount = optionVoteCounts[i];
-			totalVotes += voteCount;
-			bool userVotedForOption = hasVotedOption(user, i);
-			// Adjust the index for optionViews to start at 0
-			optionViews[i - 1] = OptionView({
-				title: options[i].title,
-				description: options[i].description,
-				proposer: options[i].proposer,
-				voteCount: voteCount,
-				pointsAccrued: optionPointsAccrued[i],
-				userVoted: userVotedForOption
-			});
-
-			if (userVotedForOption) {
-				userOptionVoted = i;
-			}
-		}
-
-		return
-			QuestionView({
-				questionType: questionType,
-				title: title,
-				description: description,
-				deadline: deadline,
-				totalVoteCount: totalVotes,
-				options: optionViews,
-				isActive: isActive(),
-				owner: owner(),
-				started: deploymentTime,
-				userPointsCurrent: points.balanceOf(user),
-				userPointsDeadline: points.balanceAtTimestamp(user, deadline),
-				userCanAddOption: canAddOption(user)
-			});
-	}
-
 	// Internal functions
 
 	/// @dev Processes a vote for a specific option
@@ -177,4 +133,13 @@ abstract contract Question is Ownable, IQuestion {
 	/// @param user The address of the user to check
 	/// @return bool True if the user can add an option, false otherwise
 	function canAddOption(address user) public view virtual returns (bool);
+
+	// Helper function to get total vote count
+	function getTotalVoteCount() internal view returns (uint256) {
+		uint256 totalVotes = 0;
+		for (uint256 i = 1; i < options.length; i++) {
+			totalVotes += optionVoteCounts[i];
+		}
+		return totalVotes;
+	}
 }

@@ -2,44 +2,39 @@
 pragma solidity ^0.8.20;
 
 import { Question } from "./Question.sol";
-import { IOpenQuestion, IQuestion } from "./interfaces/IOpenQuestion.sol";
+import { IOpenQuestion } from "./interfaces/IOpenQuestion.sol";
+import { IQuestion } from "./interfaces/IQuestion.sol";
 
 /// @title OpenQuestion Contract
 /// @dev Implements an open-ended question where users can add options and vote
 contract OpenQuestion is Question, IOpenQuestion {
 	// Mapping to store user votes for each option
-	mapping(address voter => mapping(uint256 optionId => bool hasVoted)) private userVotes;
-
-	/// @inheritdoc IOpenQuestion
-	/// @notice Minimum points required to add an option
-	uint256 public override minPointsToAddOption;
+	mapping(address user => mapping(uint256 optionId => bool hasVoted)) private userVotes;
 
 	/// @notice Initializes the OpenQuestion contract
 	/// @dev Sets up the question details and minimum points required to add an option
-	/// @param initialOwner The address of the initial owner of the question
+	/// @param _space The address of the Space contract
 	/// @param _title The title of the question
 	/// @param _description The description of the question
 	/// @param _deadline The deadline for voting on the question
-	/// @param _pointsAddress The address of the Points contract
-	/// @param _minPointsToAddOption The minimum points required to add a new option
 	constructor(
-		address initialOwner,
+		address _space,
 		string memory _title,
 		string memory _description,
-		uint256 _deadline,
-		address _pointsAddress,
-		uint256 _minPointsToAddOption
-	) Question(initialOwner, _title, _description, _deadline, _pointsAddress) {
+		uint256 _deadline
+	) Question(_space, _title, _description, _deadline) {
 		questionType = QuestionType.Open;
-		minPointsToAddOption = _minPointsToAddOption;
 	}
 
 	/// @inheritdoc IOpenQuestion
-	function addOption(string memory _title, string memory _description) external override whileActive {
-		if (!canAddOption(msg.sender)) {
-			revert InsufficientPoints();
-		}
-		_addOption(_title, _description);
+	function addOption(
+		string memory _title,
+		string memory _description
+	) external whileActive returns (uint256 optionId) {
+		// if (!canAddOption(msg.sender)) {
+		// revert InsufficientPoints();
+		// }
+		optionId = _addOption(_title, _description);
 	}
 
 	/// @notice Processes a vote for a specific option
@@ -55,16 +50,5 @@ contract OpenQuestion is Question, IOpenQuestion {
 	/// @inheritdoc IQuestion
 	function hasVotedOption(address voter, uint256 optionId) public view override(IQuestion, Question) returns (bool) {
 		return userVotes[voter][optionId];
-	}
-
-	/// @inheritdoc IOpenQuestion
-	function updateMinPointsToAddOption(uint256 _minPointsToAddOption) external override onlyOwner {
-		minPointsToAddOption = _minPointsToAddOption;
-		emit MinPointsToAddOptionUpdated(_minPointsToAddOption);
-	}
-
-	/// @inheritdoc Question
-	function canAddOption(address user) public view override returns (bool) {
-		return points.balanceAtTimestamp(user, deadline) >= minPointsToAddOption;
 	}
 }

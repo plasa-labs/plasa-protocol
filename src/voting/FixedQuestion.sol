@@ -13,23 +13,22 @@ contract FixedQuestion is Question, IFixedQuestion {
 
 	/// @notice Initializes a new fixed question with predefined options
 	/// @dev Sets up the initial state and options for the fixed question
-	/// @param initialOwner The address that will own and manage this question
+	/// @param _space The address of the Space contract
 	/// @param _title A short, descriptive title for the question
 	/// @param _description A more detailed explanation of the question
 	/// @param _deadline The timestamp after which voting will be closed
-	/// @param _pointsAddress The address of the Points contract for vote weighting
 	/// @param _initialOptionTitles An array of titles for the initial voting options
 	/// @param _initialOptionDescriptions An array of descriptions for the initial voting options
 	constructor(
-		address initialOwner,
+		address _space,
 		string memory _title,
 		string memory _description,
 		uint256 _deadline,
-		address _pointsAddress,
 		string[] memory _initialOptionTitles,
 		string[] memory _initialOptionDescriptions
-	) Question(initialOwner, _title, _description, _deadline, _pointsAddress) {
+	) Question(_space, _title, _description, _deadline) {
 		questionType = QuestionType.Fixed;
+
 		if (_initialOptionTitles.length != _initialOptionDescriptions.length) {
 			revert MismatchedOptionArrays();
 		}
@@ -57,8 +56,7 @@ contract FixedQuestion is Question, IFixedQuestion {
 		return userVotes[voter] == optionId;
 	}
 
-	/// @inheritdoc Question
-	function canAddOption(address) public pure override returns (bool) {
-		return false;
+	function canVote(address voter) public view override(IQuestion, Question) returns (bool) {
+		return super.canVote(voter) && !hasVoted(voter);
 	}
 }

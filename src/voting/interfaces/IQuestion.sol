@@ -4,94 +4,115 @@ pragma solidity ^0.8.20;
 import { IPoints } from "../../points/interfaces/IPoints.sol";
 import { IQuestionView } from "./IQuestionView.sol";
 
-/// @title Question Interface for a Voting System
-/// @dev Interface for managing questions in a voting system with various options and views
+/// @title Question Interface for a Decentralized Voting System
+/// @dev Interface for managing questions, options, and votes in a decentralized voting system
+/// @notice This interface provides functions for creating, updating, and interacting with voting questions
 interface IQuestion is IQuestionView {
 	// Events
-	/// @dev Emitted when a question is updated
-	/// @param newTitle The new title of the question
-	/// @param newDescription The new description of the question
-	/// @param newDeadline The new deadline for voting
+	/// @dev Emitted when a question's details are updated
+	/// @param newTitle The updated title of the question
+	/// @param newDescription The updated description of the question
+	/// @param newDeadline The updated deadline for voting
 	event QuestionUpdated(string newTitle, string newDescription, uint256 newDeadline);
 
 	/// @dev Emitted when a vote is cast
 	/// @param voter The address of the voter
 	/// @param optionId The ID of the option voted for
-	/// @param timestamp The timestamp of the vote
+	/// @param timestamp The timestamp when the vote was cast
 	event Voted(address indexed voter, uint256 indexed optionId, uint256 timestamp);
 
-	/// @dev Emitted when a new option is added
-	/// @param proposer The address of the proposer
-	/// @param optionId The ID of the new option
+	/// @dev Emitted when a new voting option is added
+	/// @param proposer The address of the account proposing the new option
+	/// @param optionId The ID assigned to the new option
 	/// @param title The title of the new option
 	event NewOption(address indexed proposer, uint256 indexed optionId, string title);
 
 	// Errors
-	/// @dev Thrown when trying to vote after the deadline
+	/// @dev Thrown when an attempt is made to vote after the voting deadline
 	error VotingEnded();
 
 	/// @dev Thrown when a user tries to vote more than once
 	error AlreadyVoted();
 
-	/// @dev Thrown when an invalid option is selected
+	/// @dev Thrown when an invalid option ID is provided for voting
 	error InvalidOption();
 
 	// Public variables
-	/// @notice Get the title of the question
-	/// @return The title of the question
+	/// @notice Retrieves the title of the question
+	/// @return The current title of the question
 	function title() external view returns (string memory);
 
-	/// @notice Get the description of the question
-	/// @return The description of the question
+	/// @notice Retrieves the description of the question
+	/// @return The current description of the question
 	function description() external view returns (string memory);
 
-	/// @notice Get the deadline for voting
-	/// @return The timestamp of the voting deadline
+	/// @notice Retrieves the deadline for voting on this question
+	/// @return The timestamp representing the voting deadline
 	function deadline() external view returns (uint256);
 
 	// External functions
-	/// @notice Cast a vote for an option
+	/// @notice Allows a user to cast a vote for a specific option
+	/// @dev Emits a Voted event upon successful voting
 	/// @param optionId The ID of the option to vote for
 	function vote(uint256 optionId) external;
 
-	/// @notice Update the title of the question
-	/// @param _title The new title
+	/// @notice Updates the title of the question
+	/// @dev Only callable by authorized roles (e.g., admin)
+	/// @param _title The new title to set for the question
 	function updateTitle(string memory _title) external;
 
-	/// @notice Update the description of the question
-	/// @param _description The new description
+	/// @notice Updates the description of the question
+	/// @dev Only callable by authorized roles (e.g., admin)
+	/// @param _description The new description to set for the question
 	function updateDescription(string memory _description) external;
 
-	/// @notice Update the deadline of the question
-	/// @param _deadline The new deadline timestamp
+	/// @notice Updates the voting deadline for the question
+	/// @dev Only callable by authorized roles (e.g., admin)
+	/// @param _deadline The new deadline timestamp to set
 	function updateDeadline(uint256 _deadline) external;
 
-	/// @notice Get all options for the question
-	/// @return An array of all Option structs
-	function getOptions() external view returns (Option[] memory);
+	/// @notice Retrieves all available voting options for the question
+	/// @return An array of OptionData structs representing all voting options
+	function getOptions() external view returns (OptionData[] memory);
 
-	/// @notice Get a specific option by its ID
+	/// @notice Retrieves a specific voting option by its ID
 	/// @param optionId The ID of the option to retrieve
-	/// @return The Option struct for the specified ID
-	function getOption(uint256 optionId) external view returns (Option memory);
+	/// @return The OptionData struct for the specified option ID
+	function getOption(uint256 optionId) external view returns (OptionData memory);
 
 	// Public functions
-	/// @notice Check if the question is currently active
-	/// @return True if the question is active, false otherwise
+	/// @notice Checks if the voting period for this question is currently active
+	/// @return True if voting is active, false otherwise
 	function isActive() external view returns (bool);
 
-	/// @notice Check if a specific user has voted for a specific option
+	/// @notice Checks if a specific user has voted for a particular option
 	/// @param voter The address of the voter to check
-	/// @param optionId The ID of the option to check
-	/// @return True if the user has voted for the option, false otherwise
+	/// @param optionId The ID of the option to check against
+	/// @return True if the user has voted for the specified option, false otherwise
 	function hasVotedOption(address voter, uint256 optionId) external view returns (bool);
 
-	/// @notice Check if a specific user has voted for any option
+	/// @notice Checks if a specific user has voted for any option
 	/// @param voter The address of the voter to check
-	/// @return True if the user has voted for any option, false otherwise
+	/// @return True if the user has cast any vote, false otherwise
 	function hasVoted(address voter) external view returns (bool);
 
-	/// @notice Get the deployment time of the question contract
+	/// @notice Checks if a specific user is eligible to vote
+	/// @param voter The address of the potential voter to check
+	/// @return True if the user can vote, false otherwise
+	function canVote(address voter) external view returns (bool);
+
+	/// @notice Retrieves the deployment timestamp of the question contract
 	/// @return The timestamp when the contract was deployed
-	function deploymentTime() external view returns (uint256);
+	function kickoff() external view returns (uint256);
+
+	/// @notice Calculates the total number of votes cast for all options
+	/// @dev This function iterates through all options to sum up the votes
+	/// @return The total number of votes cast for the question
+	function totalVoteCount() external view returns (uint256);
+
+	/// @notice Determines the voting power of a user at the voting deadline
+	/// @dev This function should return the user's balance of voting points at the deadline
+	/// @param user The address of the user to check
+	/// @return The voting power (point balance) of the user at the voting deadline
+	function votingPower(address user) external view returns (uint256);
 }

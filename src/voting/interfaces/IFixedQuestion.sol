@@ -11,6 +11,7 @@ interface IFixedQuestion is IQuestion {
 	/// @dev This error should be used in the implementation to prevent multiple votes from the same user
 	error UserAlreadyVoted();
 
-	/// @dev Error thrown when the lengths of option titles and descriptions arrays don't match
+	/// @notice Error thrown when the lengths of option titles and descriptions arrays don't match
+	/// @dev This error should be used when initializing or updating question options
 	error MismatchedOptionArrays();
 }

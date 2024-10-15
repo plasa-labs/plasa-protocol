@@ -34,7 +34,7 @@ interface ISpaceView {
 	/// @notice Struct defining user permissions within a Space
 	struct PermissionsUser {
 		bool UpdateSpaceInfo;
-		bool UpdateSpaceDefaultPoints;
+		bool UpdateSpacePoints;
 		bool UpdateQuestionInfo;
 		bool UpdateQuestionDeadline;
 		bool UpdateQuestionPoints;

@@ -21,7 +21,7 @@ interface ISpaceAccessControl {
 	/// @notice Enum representing different permission names
 	enum PermissionName {
 		UpdateSpaceInfo,
-		UpdateSpaceDefaultPoints,
+		UpdateSpacePoints,
 		UpdateQuestionInfo,
 		UpdateQuestionDeadline,
 		UpdateQuestionPoints,

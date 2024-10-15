@@ -31,6 +31,9 @@ contract Plasa is Ownable {
 	constructor(address initialOwner) Ownable(initialOwner) {}
 
 	/// @notice Creates a new space
+	/// @param initialSuperAdmins An array of addresses to be granted the SUPER_ADMIN_ROLE
+	/// @param initialAdmins An array of addresses to be granted the ADMIN_ROLE
+	/// @param initialModerators An array of addresses to be granted the MODERATOR_ROLE
 	/// @param stampSigner The address authorized to sign mint requests for follower stamps
 	/// @param platform The platform name (e.g., "Instagram", "Twitter")
 	/// @param followed The account being followed
@@ -39,6 +42,9 @@ contract Plasa is Ownable {
 	/// @param spaceImageUrl The URL of the space's image
 	/// @return The address of the newly created space
 	function createSpace(
+		address[] memory initialSuperAdmins,
+		address[] memory initialAdmins,
+		address[] memory initialModerators,
 		address stampSigner,
 		string memory platform,
 		string memory followed,
@@ -47,7 +53,17 @@ contract Plasa is Ownable {
 		string memory spaceImageUrl
 	) external returns (address) {
 		ISpace newSpace = ISpace(
-			new Space(msg.sender, stampSigner, platform, followed, spaceName, spaceDescription, spaceImageUrl)
+			new Space(
+				initialSuperAdmins,
+				initialAdmins,
+				initialModerators,
+				stampSigner,
+				platform,
+				followed,
+				spaceName,
+				spaceDescription,
+				spaceImageUrl
+			)
 		);
 		spaces.push(newSpace);
 		emit SpaceCreated(address(newSpace), msg.sender);

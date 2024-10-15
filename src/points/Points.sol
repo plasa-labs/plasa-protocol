@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IPoints, IERC20Metadata, IERC20 } from "./interfaces/IPoints.sol";
+import { IPointsView } from "./interfaces/IPointsView.sol";
 
 /// @title Points - A non-transferable ERC20-like token contract
 /// @notice This contract implements a non-transferable token system
@@ -86,5 +87,14 @@ abstract contract Points is IPoints {
 	/// @inheritdoc IERC20Metadata
 	function decimals() public view virtual override returns (uint8) {
 		return _decimals;
+	}
+
+	/// @inheritdoc IPointsView
+	function getPointsView(address user) public view virtual override returns (PointsView memory) {
+		return
+			PointsView({
+				data: PointsData({ contractAddress: address(this), name: name(), symbol: symbol() }),
+				user: PointsUser({ currentBalance: balanceOf(user) })
+			});
 	}
 }

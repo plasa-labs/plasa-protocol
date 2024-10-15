@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./interfaces/ISpace.sol";
-import "../stamps/interfaces/IFollowerSinceStamp.sol";
-import "../points/interfaces/IFollowerSincePoints.sol";
-import "../voting/interfaces/IQuestion.sol";
-import "../voting/FixedQuestion.sol";
-import "../voting/OpenQuestion.sol";
-import "../stamps/FollowerSinceStamp.sol";
-import "../points/FollowerSincePoints.sol";
-import "./SpaceAccessControl.sol";
+import { ISpace } from "./interfaces/ISpace.sol";
+import { IFollowerSinceStamp } from "../stamps/interfaces/IFollowerSinceStamp.sol";
+import { IFollowerSincePoints } from "../points/interfaces/IFollowerSincePoints.sol";
+import { IQuestion } from "../voting/interfaces/IQuestion.sol";
+import { FixedQuestion } from "../voting/FixedQuestion.sol";
+import { OpenQuestion } from "../voting/OpenQuestion.sol";
+import { FollowerSinceStamp } from "../stamps/FollowerSinceStamp.sol";
+import { FollowerSincePoints } from "../points/FollowerSincePoints.sol";
+import { SpaceAccessControl } from "./SpaceAccessControl.sol";
+import { IQuestionView } from "../voting/interfaces/IQuestionView.sol";
 
 /// @title Space - A contract for managing community spaces in Plasa
 /// @notice This contract represents a space, organization, or leader using Plasa for their community
@@ -52,7 +53,9 @@ contract Space is ISpace, SpaceAccessControl {
 		spaceImageUrl = _spaceImageUrl;
 
 		// Deploy FollowerSinceStamp contract
-		followerStamp = IFollowerSinceStamp(address(new FollowerSinceStamp(stampSigner, platform, followed)));
+		followerStamp = IFollowerSinceStamp(
+			address(new FollowerSinceStamp(address(this), stampSigner, platform, followed))
+		);
 		emit FollowerStampDeployed(address(followerStamp));
 
 		// Deploy FollowerSincePoints contract
@@ -83,16 +86,15 @@ contract Space is ISpace, SpaceAccessControl {
 		string[] memory initialOptionDescriptions
 	) external onlyAllowed(PermissionName.CreateFixedQuestion) returns (address) {
 		FixedQuestion newQuestion = new FixedQuestion(
-			msg.sender,
+			address(this),
 			questionTitle,
 			questionDescription,
 			deadline,
-			address(defaultPoints),
 			initialOptionTitles,
 			initialOptionDescriptions
 		);
 		questions.push(IQuestion(address(newQuestion)));
-		emit QuestionDeployed(address(newQuestion), IQuestion.QuestionType.Fixed);
+		emit QuestionDeployed(address(newQuestion), IQuestionView.QuestionType.Fixed);
 		return address(newQuestion);
 	}
 
@@ -100,19 +102,11 @@ contract Space is ISpace, SpaceAccessControl {
 	function deployOpenQuestion(
 		string memory questionTitle,
 		string memory questionDescription,
-		uint256 deadline,
-		uint256 minPointsToAddOption
+		uint256 deadline
 	) external onlyAllowed(PermissionName.CreateOpenQuestion) returns (address) {
-		OpenQuestion newQuestion = new OpenQuestion(
-			msg.sender,
-			questionTitle,
-			questionDescription,
-			deadline,
-			address(defaultPoints),
-			minPointsToAddOption
-		);
+		OpenQuestion newQuestion = new OpenQuestion(address(this), questionTitle, questionDescription, deadline);
 		questions.push(IQuestion(address(newQuestion)));
-		emit QuestionDeployed(address(newQuestion), IQuestion.QuestionType.Open);
+		emit QuestionDeployed(address(newQuestion), IQuestionView.QuestionType.Open);
 		return address(newQuestion);
 	}
 
@@ -166,7 +160,7 @@ contract Space is ISpace, SpaceAccessControl {
 				name: spaceName,
 				description: spaceDescription,
 				imageUrl: spaceImageUrl,
-				stamp: followerStamp.getFollowerSinceStampView(user),
+				stampView: followerStamp.getStampView(user),
 				points: PointsView({ addr: address(defaultPoints), userCurrentBalance: defaultPoints.balanceOf(user) }),
 				questions: questionPreviews
 			});

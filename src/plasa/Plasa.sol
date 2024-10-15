@@ -84,7 +84,7 @@ contract Plasa is Ownable {
 			revert StampAlreadyExists(platform);
 		}
 
-		IAccountOwnershipStamp newStamp = new AccountOwnershipStamp(stampSigner, platform);
+		IAccountOwnershipStamp newStamp = new AccountOwnershipStamp(address(this), stampSigner, platform);
 		accountOwnershipStamps[platform] = newStamp;
 		emit AccountOwnershipStampCreated(platform, address(newStamp));
 		return address(newStamp);

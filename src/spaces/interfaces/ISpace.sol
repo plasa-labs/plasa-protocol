@@ -5,6 +5,7 @@ import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
 import { IFollowerSinceStamp } from "../../stamps/interfaces/IFollowerSinceStamp.sol";
 import { IFollowerSincePoints } from "../../points/interfaces/IFollowerSincePoints.sol";
 import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
+import { IStampView } from "../../stamps/interfaces/IStampView.sol";
 
 /// @title ISpace - Interface for managing community spaces in Plasa
 /// @notice This interface defines the structure for managing follower stamps, points, and questions within a space
@@ -17,7 +18,7 @@ interface ISpace is ISpaceAccessControl {
 		string name;
 		string description;
 		string imageUrl;
-		IFollowerSinceStamp.FollowerSinceStampView stamp;
+		IStampView.StampView stampView;
 		PointsView points;
 		QuestionPreview[] questions;
 	}
@@ -92,13 +93,11 @@ interface ISpace is ISpaceAccessControl {
 	/// @param questionTitle The title of the question
 	/// @param questionDescription The description of the question
 	/// @param deadline The deadline for voting
-	/// @param minPointsToAddOption The minimum points required to add an option
 	/// @return The address of the newly deployed question contract
 	function deployOpenQuestion(
 		string memory questionTitle,
 		string memory questionDescription,
-		uint256 deadline,
-		uint256 minPointsToAddOption
+		uint256 deadline
 	) external returns (address);
 
 	/// @notice Updates the name of the space

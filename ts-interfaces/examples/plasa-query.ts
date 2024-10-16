@@ -1,85 +1,85 @@
-import { Plasa } from "../types/plasa"
-import { StampType } from "../types/stamps"
-
-const examplePlasaQuery: Plasa = {
+import { PlasaView } from "../types/plasa"
+import { StampType, StampView } from "../types/stamps"
+import { AccountAddress, Timestamp } from "../types/basic"
+import { SpacePreview } from "../types/spaces"
+const examplePlasaQuery: PlasaView = {
 	data: {
-		contractAddress: "0x1234567890123456789012345678901234567890",
-		chainId: 1,
-		version: "1.0.0"
+		contractAddress: "0x1234567890123456789012345678901234567890" as AccountAddress,
+		chainId: 1 as number,
+		version: "1.0.0" as string
 	},
 	user: {
-		username: "alice"
+		username: "alice" as string
 	},
 	stamps: [
 		{
 			data: {
-				contractAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-				type: StampType.AccountOwnership,
-				name: "Twitter Account Ownership",
-				symbol: "TWO",
-				platform: "Twitter",
-				totalSupply: 1000000
+				contractAddress: "0xabcdef1234567890abcdef1234567890abcdef12" as AccountAddress,
+				spaceAddress: "0x1111222233334444555566667777888899990000" as AccountAddress,
+				stampType: StampType.AccountOwnership as StampType,
+				name: "Twitter Account Ownership" as string,
+				symbol: "TWO" as string,
+				platform: "Twitter" as string,
+				totalSupply: 1000000 as number
 			},
 			user: {
-				owns: true,
-				stampId: 123456,
-				mintingTimestamp: 1625097600000
-			},
-			userUsername: "alice_twitter"
-		},
+				owns: true as boolean,
+				stampId: 123456 as number,
+				mintingTimestamp: 1625097600000 as Timestamp
+			}
+		} as StampView,
 		{
 			data: {
-				contractAddress: "0x9876543210fedcba9876543210fedcba98765432",
-				type: StampType.FollowerSince,
-				name: "Early Follower",
-				symbol: "EF",
-				platform: "Twitter",
-				totalSupply: 5000,
-				followedAccount: "0x1111222233334444555566667777888899990000",
-				space: "CryptoNews"
+				contractAddress: "0x9876543210fedcba9876543210fedcba98765432" as AccountAddress,
+				spaceAddress: "0x1111222233334444555566667777888899990000" as AccountAddress,
+				stampType: StampType.FollowerSince as StampType,
+				name: "Early Follower" as string,
+				symbol: "EF" as string,
+				platform: "Twitter" as string,
+				totalSupply: 5000 as number,
+				specific: "0x1111222233334444555566667777888899990000" as AccountAddress // followedAccount
 			},
 			user: {
-				owns: true,
-				stampId: 789012,
-				mintingTimestamp: 1625184000000,
-				followTimestamp: 1625097600000,
-				timeSinceFollow: 86400000 // 1 day in milliseconds
+				owns: true as boolean,
+				stampId: 789012 as number,
+				mintingTimestamp: 1625184000000 as Timestamp,
+				specific: 1625097600000 as Timestamp // follow date
 			}
-		}
+		} as StampView
 	],
 	spaces: [
 		{
 			data: {
-				contractAddress: "0x1111222233334444555566667777888899990000",
-				name: "CryptoNews",
-				description: "Latest news and updates in the crypto space",
-				imageUrl: "https://example.com/crypto-news.png",
-				creationTimestamp: 1625000000000
+				contractAddress: "0x1111222233334444555566667777888899990000" as AccountAddress,
+				name: "CryptoNews" as string,
+				description: "Latest news and updates in the crypto space" as string,
+				imageUrl: "https://example.com/crypto-news.png" as string,
+				creationTimestamp: 1625000000000 as Timestamp
 			},
 			user: {
 				roles: {
-					superAdmin: false,
-					admin: true,
-					mod: true
+					superAdmin: false as boolean,
+					admin: true as boolean,
+					mod: true as boolean
 				},
 				permissions: {
-					UpdateSpaceInfo: true,
-					UpdateSpaceDefaultPoints: true,
-					UpdateQuestionInfo: true,
-					UpdateQuestionDeadline: true,
-					UpdateQuestionPoints: true,
-					CreateFixedQuestion: true,
-					CreateOpenQuestion: true,
-					VetoFixedQuestion: true,
-					VetoOpenQuestion: true,
-					VetoOpenQuestionOption: true,
-					LiftVetoFixedQuestion: true,
-					LiftVetoOpenQuestion: true,
-					LiftVetoOpenQuestionOption: true,
-					AddOpenQuestionOption: true
+					UpdateSpaceInfo: true as boolean,
+					UpdateSpacePoints: true as boolean,
+					UpdateQuestionInfo: true as boolean,
+					UpdateQuestionDeadline: true as boolean,
+					UpdateQuestionPoints: true as boolean,
+					CreateFixedQuestion: true as boolean,
+					CreateOpenQuestion: true as boolean,
+					VetoFixedQuestion: true as boolean,
+					VetoOpenQuestion: true as boolean,
+					VetoOpenQuestionOption: true as boolean,
+					LiftVetoFixedQuestion: true as boolean,
+					LiftVetoOpenQuestion: true as boolean,
+					LiftVetoOpenQuestionOption: true as boolean,
+					AddOpenQuestionOption: true as boolean
 				}
 			}
-		}
+		} as SpacePreview
 	]
 }
 

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { IPoints } from "./IPoints.sol";
-
 /// @title IPointsView - View interface for a non-transferable ERC20-like token system
 /// @notice This interface defines the read-only functions for querying the state of a non-transferable token system
 /// @dev Implement this interface for contracts that need to provide a view into the Points system

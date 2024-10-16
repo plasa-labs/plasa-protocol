@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "../spaces/Space.sol";
-import "../stamps/AccountOwnershipStamp.sol";
-import "../spaces/interfaces/ISpace.sol";
-import "../stamps/interfaces/IAccountOwnershipStamp.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Space, ISpace, ISpaceView } from "../spaces/Space.sol";
+import { AccountOwnershipStamp, IAccountOwnershipStamp } from "../stamps/AccountOwnershipStamp.sol";
+import { IPlasaView } from "./IPlasaView.sol";
+import { IStamp, IStampView } from "../stamps/interfaces/IStamp.sol";
 
 /// @title Plasa - The main contract for managing spaces and account ownership stamps
 /// @notice This contract serves as the central hub for all Plasa-related contracts
 /// @dev Inherits from Ownable for access control
-contract Plasa is Ownable {
+contract Plasa is Ownable, IPlasaView {
 	/// @notice Array to store all created spaces
 	ISpace[] public spaces;
+
+	IStamp[] public stamps;
 
 	/// @notice Mapping to store account ownership stamps by platform name
 	mapping(string => IAccountOwnershipStamp) public accountOwnershipStamps;
@@ -90,5 +92,29 @@ contract Plasa is Ownable {
 		accountOwnershipStamps[platform] = newStamp;
 		emit AccountOwnershipStampCreated(platform, address(newStamp));
 		return address(newStamp);
+	}
+
+	/// @notice Retrieves the Plasa view for a given user
+	/// @param user The address of the user to get the Plasa view for
+	/// @return The Plasa view for the given user
+	function getPlasaView(address user) external view returns (IPlasaView.PlasaView memory) {
+		IStampView.StampView[] memory stampsViews = new IStampView.StampView[](stamps.length);
+		for (uint256 i = 0; i < stamps.length; i++) {
+			stampsViews[i] = stamps[i].getStampView(user);
+		}
+
+		ISpaceView.SpacePreview[] memory spacesPreviews = new ISpaceView.SpacePreview[](spaces.length);
+		for (uint256 i = 0; i < spaces.length; i++) {
+			spacesPreviews[i] = spaces[i].getSpacePreview(user);
+		}
+
+		IPlasaView.PlasaData memory data = IPlasaView.PlasaData({
+			contractAddress: address(this),
+			chainId: block.chainid,
+			version: "0.1.0"
+		});
+
+		return
+			IPlasaView.PlasaView(data, IPlasaView.PlasaUser({ username: "testusername" }), stampsViews, spacesPreviews);
 	}
 }

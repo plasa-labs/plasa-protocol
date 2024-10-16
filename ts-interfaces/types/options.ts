@@ -5,7 +5,6 @@ export interface OptionData {
 	description: string
 	proposer: AccountAddress
 	voteCount: number
-	pointsCurrent: number
 	pointsAtDeadline: number
 }
 
@@ -13,7 +12,7 @@ export interface OptionUser {
 	voted: boolean
 }
 
-export interface Option {
+export interface OptionView {
 	data: OptionData
 	user: OptionUser
 }

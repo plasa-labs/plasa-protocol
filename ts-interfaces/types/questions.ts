@@ -1,5 +1,5 @@
 import { AccountAddress, Timestamp } from './basic'
-import { Option } from './options'
+import { OptionView } from './options'
 
 export enum QuestionType {
 	Null = 'Null',
@@ -9,7 +9,7 @@ export enum QuestionType {
 
 export interface QuestionData {
 	contractAddress: AccountAddress
-	type: QuestionType
+	questionType: QuestionType
 	title: string
 	description: string
 	creator: AccountAddress
@@ -29,6 +29,6 @@ export interface QuestionPreview {
 	user: QuestionUser
 }
 
-export interface Question extends QuestionPreview {
-	options: Option[]
+export interface QuestionView extends QuestionPreview {
+	options: OptionView[]
 }

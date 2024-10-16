@@ -1,5 +1,5 @@
 import { AccountAddress, Timestamp } from './basic'
-import { Points } from './points'
+import { PointsView } from './points'
 import { QuestionPreview } from './questions'
 
 export interface SpaceData {
@@ -10,28 +10,32 @@ export interface SpaceData {
 	creationTimestamp: Timestamp
 }
 
+export interface RolesUser {
+	superAdmin: boolean
+	admin: boolean
+	mod: boolean
+}
+
+export interface PermissionsUser {
+	UpdateSpaceInfo: boolean
+	UpdateSpacePoints: boolean
+	UpdateQuestionInfo: boolean
+	UpdateQuestionDeadline: boolean
+	UpdateQuestionPoints: boolean
+	CreateFixedQuestion: boolean
+	CreateOpenQuestion: boolean
+	VetoFixedQuestion: boolean
+	VetoOpenQuestion: boolean
+	VetoOpenQuestionOption: boolean
+	LiftVetoFixedQuestion: boolean
+	LiftVetoOpenQuestion: boolean
+	LiftVetoOpenQuestionOption: boolean
+	AddOpenQuestionOption: boolean
+}
+
 export interface SpaceUser {
-	roles: {
-		superAdmin: boolean
-		admin: boolean
-		mod: boolean
-	}
-	permissions: {
-		UpdateSpaceInfo: boolean
-		UpdateSpaceDefaultPoints: boolean
-		UpdateQuestionInfo: boolean
-		UpdateQuestionDeadline: boolean
-		UpdateQuestionPoints: boolean
-		CreateFixedQuestion: boolean
-		CreateOpenQuestion: boolean
-		VetoFixedQuestion: boolean
-		VetoOpenQuestion: boolean
-		VetoOpenQuestionOption: boolean
-		LiftVetoFixedQuestion: boolean
-		LiftVetoOpenQuestion: boolean
-		LiftVetoOpenQuestionOption: boolean
-		AddOpenQuestionOption: boolean
-	}
+	roles: RolesUser
+	permissions: PermissionsUser
 }
 
 export interface SpacePreview {
@@ -39,7 +43,7 @@ export interface SpacePreview {
 	user: SpaceUser
 }
 
-export interface Space extends SpacePreview {
-	points: Points
+export interface SpaceView extends SpacePreview {
+	points: PointsView
 	questions: QuestionPreview[]
 }

@@ -10,7 +10,7 @@ export interface PointsUser {
 	currentBalance: number
 }
 
-export interface Points {
+export interface PointsView {
 	data: PointsData
 	user: PointsUser
 }

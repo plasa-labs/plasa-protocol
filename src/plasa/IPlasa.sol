@@ -36,4 +36,9 @@ interface IPlasa is IPlasaView {
 	/// @dev Only callable by authorized entities
 	/// @param space The address of the space contract to add
 	function addSpace(address space) external;
+
+	/// @notice Custom error for when an index is out of bounds
+	/// @param index The index that was out of bounds
+	/// @param arrayLength The length of the array that was being accessed
+	error IndexOutOfBounds(uint256 index, uint256 arrayLength);
 }

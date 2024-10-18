@@ -71,13 +71,13 @@ contract Plasa is Ownable, IPlasa {
 
 	/// @inheritdoc IPlasa
 	function getSpace(uint256 index) external view returns (ISpace) {
-		require(index < _spaces.length, "Plasa: Space index out of bounds");
+		if (index >= _spaces.length) revert IndexOutOfBounds(index, _spaces.length);
 		return _spaces[index];
 	}
 
 	/// @inheritdoc IPlasa
 	function getStamp(uint256 index) external view returns (IStamp) {
-		require(index < _stamps.length, "Plasa: Stamp index out of bounds");
+		if (index >= _stamps.length) revert IndexOutOfBounds(index, _stamps.length);
 		return _stamps[index];
 	}
 }

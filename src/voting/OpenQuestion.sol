@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import { Question } from "./Question.sol";
 import { IOpenQuestion, IQuestion } from "./interfaces/IOpenQuestion.sol";
+import { ISpaceAccessControl } from "../spaces/interfaces/ISpaceAccessControl.sol";
 
 /// @title OpenQuestion Contract
 /// @dev Implements an open-ended question where users can add options and vote
@@ -30,9 +31,9 @@ contract OpenQuestion is Question, IOpenQuestion {
 		string memory _title,
 		string memory _description
 	) external whileActive returns (uint256 optionId) {
-		// if (!canAddOption(msg.sender)) {
-		// revert InsufficientPoints();
-		// }
+		if (!space.canAddOpenQuestionOption(msg.sender)) {
+			revert InsufficientPoints();
+		}
 		optionId = _addOption(_title, _description);
 	}
 

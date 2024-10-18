@@ -3,20 +3,17 @@ pragma solidity ^0.8.20;
 
 import { ISpace, ISpaceView } from "./interfaces/ISpace.sol";
 import { IQuestion, IQuestionView } from "../voting/interfaces/IQuestion.sol";
-import { FollowerSinceStamp, IFollowerSinceStamp } from "../stamps/FollowerSinceStamp.sol";
-import { FollowerSincePoints, IFollowerSincePoints } from "../points/FollowerSincePoints.sol";
 import { SpaceAccessControl } from "./SpaceAccessControl.sol";
 import { FixedQuestion } from "../voting/FixedQuestion.sol";
 import { OpenQuestion } from "../voting/OpenQuestion.sol";
+import { IPoints } from "../points/interfaces/IPoints.sol";
 
 /// @title Space - A contract for managing community spaces in Plasa
 /// @notice This contract represents a space, organization, or leader using Plasa for their community
 /// @dev Implements ISpace interface and inherits from SpaceAccessControl for access control
 /// @custom:security-contact security@plasa.io
 contract Space is ISpace, SpaceAccessControl {
-	// State variables
-	IFollowerSinceStamp public override followerStamp;
-	IFollowerSincePoints public override defaultPoints;
+	IPoints public override defaultPoints;
 	IQuestion[] private questions;
 
 	string public override spaceName;
@@ -29,40 +26,28 @@ contract Space is ISpace, SpaceAccessControl {
 	/// @param initialSuperAdmins Array of initial super admins
 	/// @param initialAdmins Array of initial admins
 	/// @param initialModerators Array of initial moderators
-	/// @param stampSigner Signer address for the follower stamp
-	/// @param platform Platform name
-	/// @param followed Platform username
 	/// @param _spaceName Name of the space
+	/// @param _spaceDescription Description of the space
+	/// @param _spaceImageUrl Image URL of the space
+	/// @param _defaultPoints Address of the default points contract
+	/// @param _minPointsToAddOpenQuestionOption Minimum points required to add an open question option
 	constructor(
 		address[] memory initialSuperAdmins,
 		address[] memory initialAdmins,
 		address[] memory initialModerators,
-		address stampSigner,
-		string memory platform,
-		string memory followed,
 		string memory _spaceName,
 		string memory _spaceDescription,
 		string memory _spaceImageUrl,
-		string memory _pointsSymbol,
+		address _defaultPoints,
 		uint256 _minPointsToAddOpenQuestionOption
 	) SpaceAccessControl(initialSuperAdmins, initialAdmins, initialModerators) {
 		spaceName = _spaceName;
 		spaceDescription = _spaceDescription;
 		spaceImageUrl = _spaceImageUrl;
+
+		defaultPoints = IPoints(_defaultPoints);
+
 		minPointsToAddOpenQuestionOption = _minPointsToAddOpenQuestionOption;
-
-		// Deploy FollowerSinceStamp contract
-		followerStamp = IFollowerSinceStamp(
-			address(new FollowerSinceStamp(address(this), stampSigner, platform, followed))
-		);
-		emit FollowerStampDeployed(address(followerStamp));
-
-		// Deploy FollowerSincePoints contract
-		string memory pointsName = string(abi.encodePacked(_spaceName, " Points"));
-		defaultPoints = IFollowerSincePoints(
-			address(new FollowerSincePoints(address(followerStamp), pointsName, _pointsSymbol))
-		);
-		emit FollowerPointsDeployed(address(defaultPoints));
 	}
 
 	/// @inheritdoc ISpace
@@ -70,7 +55,7 @@ contract Space is ISpace, SpaceAccessControl {
 		address newDefaultPoints
 	) external override onlyAllowed(PermissionName.UpdateSpacePoints) {
 		require(newDefaultPoints != address(0), "New default points address cannot be zero");
-		defaultPoints = IFollowerSincePoints(newDefaultPoints);
+		defaultPoints = IPoints(newDefaultPoints);
 		emit DefaultPointsUpdated(newDefaultPoints);
 	}
 
@@ -140,8 +125,8 @@ contract Space is ISpace, SpaceAccessControl {
 	}
 
 	/// @inheritdoc ISpace
-	function canAddOpenQuestionOption(address user, uint256 deadline) public view override returns (bool) {
-		return defaultPoints.balanceAtTimestamp(user, deadline) >= minPointsToAddOpenQuestionOption;
+	function canAddOpenQuestionOption(address user) public view override returns (bool) {
+		return defaultPoints.balanceOf(user) >= minPointsToAddOpenQuestionOption;
 	}
 
 	/// @inheritdoc ISpace
@@ -190,7 +175,7 @@ contract Space is ISpace, SpaceAccessControl {
 					LiftVetoFixedQuestion: checkPermission(PermissionName.LiftVetoFixedQuestion, user),
 					LiftVetoOpenQuestion: checkPermission(PermissionName.LiftVetoOpenQuestion, user),
 					LiftVetoOpenQuestionOption: checkPermission(PermissionName.LiftVetoOpenQuestionOption, user),
-					AddOpenQuestionOption: canAddOpenQuestionOption(user, block.timestamp)
+					AddOpenQuestionOption: canAddOpenQuestionOption(user)
 				})
 			});
 	}

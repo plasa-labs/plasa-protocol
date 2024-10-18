@@ -2,10 +2,9 @@
 pragma solidity ^0.8.20;
 
 import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
-import { IFollowerSinceStamp } from "../../stamps/interfaces/IFollowerSinceStamp.sol";
-import { IFollowerSincePoints } from "../../points/interfaces/IFollowerSincePoints.sol";
 import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
 import { ISpaceView } from "./ISpaceView.sol";
+import { IPoints } from "../../points/interfaces/IPoints.sol";
 
 /// @title ISpace - Interface for managing community spaces in Plasa
 /// @notice This interface defines the structure for managing follower stamps, points, and questions within a space
@@ -13,14 +12,6 @@ import { ISpaceView } from "./ISpaceView.sol";
 /// @custom:security-contact security@plasa.io
 interface ISpace is ISpaceAccessControl, ISpaceView {
 	// Events
-
-	/// @notice Emitted when a new FollowerSinceStamp contract is deployed
-	/// @param stampAddress The address of the newly deployed FollowerSinceStamp contract
-	event FollowerStampDeployed(address stampAddress);
-
-	/// @notice Emitted when a new FollowerSincePoints contract is deployed
-	/// @param pointsAddress The address of the newly deployed FollowerSincePoints contract
-	event FollowerPointsDeployed(address pointsAddress);
 
 	/// @notice Emitted when a new question contract is deployed
 	/// @param questionAddress The address of the newly deployed question contract
@@ -104,15 +95,10 @@ interface ISpace is ISpaceAccessControl, ISpaceView {
 
 	/// @notice Checks if a user can add an open question option
 	/// @param user The address of the user
-	/// @param deadline The deadline of the question
 	/// @return True if the user can add an open question option, false otherwise
-	function canAddOpenQuestionOption(address user, uint256 deadline) external view returns (bool);
+	function canAddOpenQuestionOption(address user) external view returns (bool);
 
 	// External View Functions
-
-	/// @notice Returns the FollowerSinceStamp contract associated with this space
-	/// @return The IFollowerSinceStamp interface of the associated stamp contract
-	function followerStamp() external view returns (IFollowerSinceStamp);
 
 	/// @notice Returns the name of the space
 	/// @return The name of the space
@@ -134,7 +120,7 @@ interface ISpace is ISpaceAccessControl, ISpaceView {
 	/// @return The number of deployed questions
 	function getQuestionCount() external view returns (uint256);
 
-	/// @notice Returns the default FollowerSincePoints contract associated with this space
-	/// @return The IFollowerSincePoints interface of the associated default points contract
-	function defaultPoints() external view returns (IFollowerSincePoints);
+	/// @notice Returns the default points contract associated with this space
+	/// @return The IPoints interface of the associated default points contract
+	function defaultPoints() external view returns (IPoints);
 }

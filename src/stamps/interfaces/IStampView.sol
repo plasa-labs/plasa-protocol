@@ -17,11 +17,9 @@ interface IStampView {
 	/// @dev This struct holds common properties for all stamp types
 	struct StampData {
 		address contractAddress; /// @dev Address of the contract that issued the stamp
-		address spaceAddress; /// @dev Address of the space that issued the stamp
 		StampType stampType; /// @dev Type of the stamp
 		string name; /// @dev Name of the stamp
 		string symbol; /// @dev Symbol or short identifier for the stamp
-		string platform; /// @dev Platform or service associated with the stamp
 		uint256 totalSupply; /// @dev Total number of this stamp type issued
 		bytes specific; /// @dev Additional data specific to the stamp type
 	}

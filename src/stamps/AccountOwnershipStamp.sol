@@ -13,25 +13,26 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 	// /// @notice Mapping to store usernames for each stamp ID
 	// mapping(uint256 stampId => string username) private _tokenUsernames;
 
+	/// @notice The platform name for this stamp
+	string public override PLATFORM;
+
 	/// @notice Initializes the contract with a signer and platform name
-	/// @param _space The address of the space this stamp is associated with
 	/// @param _signer The address authorized to sign mint requests
 	/// @param _platform The platform name for this stamp
 	constructor(
-		address _space,
 		address _signer,
 		string memory _platform
 	)
 		Stamp(
-			_space,
+			IStampView.StampType.AccountOwnership,
 			string.concat(_platform, " Account Owner"),
 			"OWNER",
 			"0.1.0",
-			_signer,
-			IStampView.StampType.AccountOwnership,
-			_platform
+			_signer
 		)
-	{}
+	{
+		PLATFORM = _platform;
+	}
 
 	/// @notice Mints a new stamp for a given username
 	/// @dev Verifies the signature and ensures the username is not already registered

@@ -33,10 +33,6 @@ interface IStamp is IERC721Enumerable, IStampView {
 	/// @dev This function should be implemented to return the current authorized signer's address
 	function signer() external view returns (address);
 
-	/// @notice The platform identifier for this stamp
-	/// @dev This function should return a unique identifier for the platform (e.g., "Twitter", "GitHub")
-	function PLATFORM() external view returns (string memory);
-
 	/// @notice Retrieves the minting date of a specific token
 	/// @param tokenId The ID of the token to query
 	/// @return The timestamp when the token was minted

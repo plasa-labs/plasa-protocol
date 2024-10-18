@@ -26,21 +26,10 @@ interface IAccountOwnershipStamp is IStamp {
 	/// @param owner The address of the current owner of the username
 	error UsernameAlreadyRegistered(string username, uint256 stampId, address owner);
 
-	// Structs
-	/// @notice Struct to represent the view of an AccountOwnershipStamp
-	struct AccountOwnershipStampView {
-		address stampAddress;
-		uint256 totalSupply;
-		string stampName;
-		string stampSymbol;
-		string platform;
-		bool userHasStamp;
-		uint256 userStampId;
-		string userUsername;
-		uint256 userMintingDate;
-	}
-
 	// Functions
+
+	/// @notice The platform name for this stamp
+	function PLATFORM() external view returns (string memory);
 
 	/// @notice Mints a new account ownership stamp
 	/// @dev This function is called to create a new stamp proving ownership of an account

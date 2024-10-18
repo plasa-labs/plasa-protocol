@@ -23,31 +23,23 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @inheritdoc IStamp
 	IStampView.StampType public stampType;
 
-	/// @notice The platform this stamp is associated with (e.g., "Twitter", "GitHub")
-	string public PLATFORM;
-
 	/// @notice The address of the space this stamp is associated with
 	ISpace public space;
 
 	/// @notice Initializes the Stamp contract
 	/// @dev Sets up the ERC721 token, EIP712 domain separator, and stamp-specific properties
-	/// @param _space The address of the space this stamp is associated with
+	/// @param _stampType The type of stamp
 	/// @param stampName Name of the stamp collection
 	/// @param stampSymbol Symbol of the stamp collection
 	/// @param eip712version Version string for EIP712 domain separator
 	/// @param _signer Address authorized to sign minting requests
-	/// @param _stampType The type of stamp
 	constructor(
-		address _space,
+		IStampView.StampType _stampType,
 		string memory stampName,
 		string memory stampSymbol,
 		string memory eip712version,
-		address _signer,
-		IStampView.StampType _stampType,
-		string memory _platform
+		address _signer
 	) ERC721(stampName, stampSymbol) EIP712("Plasa Stamps", eip712version) {
-		space = ISpace(_space);
-		PLATFORM = _platform;
 		signer = _signer;
 		stampType = _stampType;
 	}
@@ -117,17 +109,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	}
 
 	function _stampData() private view returns (IStampView.StampData memory) {
-		return
-			IStampView.StampData(
-				address(this),
-				address(space),
-				stampType,
-				name(),
-				symbol(),
-				PLATFORM,
-				totalSupply(),
-				_specificData()
-			);
+		return IStampView.StampData(address(this), stampType, name(), symbol(), totalSupply(), _specificData());
 	}
 
 	/// @inheritdoc IStampView

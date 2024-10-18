@@ -1,86 +1,88 @@
-import { PlasaView } from "../types/plasa"
-import { StampType, StampView } from "../types/stamps"
+import { PlasaView, PlasaData, PlasaUser } from "../types/plasa"
+import { StampType, StampView, StampData, StampUser } from "../types/stamps"
 import { AccountAddress, Timestamp } from "../types/basic"
-import { SpacePreview } from "../types/spaces"
+import { SpacePreview, SpaceData, SpaceUser, RolesUser, PermissionsUser } from "../types/spaces"
+
 const examplePlasaQuery: PlasaView = {
 	data: {
 		contractAddress: "0x1234567890123456789012345678901234567890" as AccountAddress,
-		chainId: 1 as number,
-		version: "1.0.0" as string
-	},
+		chainId: 1,
+		version: "0.1.0"
+	} as PlasaData,
+
 	user: {
-		username: "alice" as string
-	},
+		username: "alice"
+	} as PlasaUser,
+
 	stamps: [
 		{
 			data: {
-				contractAddress: "0xabcdef1234567890abcdef1234567890abcdef12" as AccountAddress,
-				spaceAddress: "0x1111222233334444555566667777888899990000" as AccountAddress,
-				stampType: StampType.AccountOwnership as StampType,
-				name: "Twitter Account Ownership" as string,
-				symbol: "TWO" as string,
-				platform: "Twitter" as string,
-				totalSupply: 1000000 as number
-			},
+				contractAddress: "0x2345678901234567890123456789012345678901" as AccountAddress,
+				stampType: StampType.AccountOwnership,
+				name: "Account Ownership Stamp",
+				symbol: "AOS",
+				totalSupply: 1000,
+				specific: "0x" // No specific data for this stamp type
+			} as StampData,
 			user: {
-				owns: true as boolean,
-				stampId: 123456 as number,
-				mintingTimestamp: 1625097600000 as Timestamp
-			}
+				owns: true,
+				stampId: 42,
+				mintingTimestamp: 1625097600 as Timestamp,
+				specific: "0x" // No specific data for this stamp type
+			} as StampUser
 		} as StampView,
 		{
 			data: {
-				contractAddress: "0x9876543210fedcba9876543210fedcba98765432" as AccountAddress,
-				spaceAddress: "0x1111222233334444555566667777888899990000" as AccountAddress,
-				stampType: StampType.FollowerSince as StampType,
-				name: "Early Follower" as string,
-				symbol: "EF" as string,
-				platform: "Twitter" as string,
-				totalSupply: 5000 as number,
-				specific: "0x1111222233334444555566667777888899990000" as AccountAddress // followedAccount
-			},
+				contractAddress: "0x3456789012345678901234567890123456789012" as AccountAddress,
+				stampType: StampType.FollowerSince,
+				name: "Follower Since Stamp",
+				symbol: "FSS",
+				totalSupply: 5000,
+				specific: "0x0000000000000000000000000000000000000000000000000000000060e316a0" // Encoded timestamp
+			} as StampData,
 			user: {
-				owns: true as boolean,
-				stampId: 789012 as number,
-				mintingTimestamp: 1625184000000 as Timestamp,
-				specific: 1625097600000 as Timestamp // follow date
-			}
+				owns: true,
+				stampId: 123,
+				mintingTimestamp: 1625184000 as Timestamp,
+				specific: "0x0000000000000000000000000000000000000000000000000000000060e316a0" // Encoded timestamp
+			} as StampUser
 		} as StampView
 	],
+
 	spaces: [
 		{
 			data: {
-				contractAddress: "0x1111222233334444555566667777888899990000" as AccountAddress,
-				name: "CryptoNews" as string,
-				description: "Latest news and updates in the crypto space" as string,
-				imageUrl: "https://example.com/crypto-news.png" as string,
-				creationTimestamp: 1625000000000 as Timestamp
-			},
+				contractAddress: "0x4567890123456789012345678901234567890123" as AccountAddress,
+				name: "Governance Space",
+				description: "A space for community governance",
+				imageUrl: "https://example.com/governance-space.png",
+				creationTimestamp: 1625270400 as Timestamp
+			} as SpaceData,
 			user: {
 				roles: {
-					superAdmin: false as boolean,
-					admin: true as boolean,
-					mod: true as boolean
-				},
+					superAdmin: false,
+					admin: true,
+					mod: true
+				} as RolesUser,
 				permissions: {
-					UpdateSpaceInfo: true as boolean,
-					UpdateSpacePoints: true as boolean,
-					UpdateQuestionInfo: true as boolean,
-					UpdateQuestionDeadline: true as boolean,
-					UpdateQuestionPoints: true as boolean,
-					CreateFixedQuestion: true as boolean,
-					CreateOpenQuestion: true as boolean,
-					VetoFixedQuestion: true as boolean,
-					VetoOpenQuestion: true as boolean,
-					VetoOpenQuestionOption: true as boolean,
-					LiftVetoFixedQuestion: true as boolean,
-					LiftVetoOpenQuestion: true as boolean,
-					LiftVetoOpenQuestionOption: true as boolean,
-					AddOpenQuestionOption: true as boolean
-				}
-			}
+					UpdateSpaceInfo: true,
+					UpdateSpacePoints: true,
+					UpdateQuestionInfo: true,
+					UpdateQuestionDeadline: true,
+					UpdateQuestionPoints: true,
+					CreateFixedQuestion: true,
+					CreateOpenQuestion: true,
+					VetoFixedQuestion: false,
+					VetoOpenQuestion: false,
+					VetoOpenQuestionOption: false,
+					LiftVetoFixedQuestion: false,
+					LiftVetoOpenQuestion: false,
+					LiftVetoOpenQuestionOption: false,
+					AddOpenQuestionOption: true
+				} as PermissionsUser
+			} as SpaceUser
 		} as SpacePreview
 	]
-}
+} as PlasaView
 
 console.log(JSON.stringify(examplePlasaQuery, null, 2))

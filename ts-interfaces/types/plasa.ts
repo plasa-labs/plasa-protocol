@@ -1,6 +1,6 @@
 import { AccountAddress } from './basic'
 import { SpacePreview } from './spaces'
-import { StampView, FollowerSinceStamp, AccountOwnershipStamp } from './stamps'
+import { StampView } from './stamps'
 
 export interface PlasaData {
 	contractAddress: AccountAddress
@@ -15,7 +15,7 @@ export interface PlasaUser {
 export interface PlasaView {
 	data: PlasaData
 	user: PlasaUser
-	stamps: (StampView | FollowerSinceStamp | AccountOwnershipStamp)[]
+	stamps: StampView[]
 	spaces: SpacePreview[]
 }
 

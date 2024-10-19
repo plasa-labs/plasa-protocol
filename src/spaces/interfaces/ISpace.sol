@@ -1,96 +1,65 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
 import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
 import { ISpaceView } from "./ISpaceView.sol";
 import { IPoints } from "../../points/interfaces/IPoints.sol";
+import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
 
 /// @title ISpace - Interface for managing community spaces in Plasa
-/// @notice This interface defines the structure for managing follower stamps, points, and questions within a space
-/// @dev Implement this interface to create a space contract that represents a community or organization using Plasa
-/// @custom:security-contact security@plasa.io
+/// @dev Implement this interface to create a space contract that represents a community or organization
+/// @notice This interface defines the structure for managing points, questions, and space information
 interface ISpace is ISpaceAccessControl, ISpaceView {
+	// Errors
+	/// @notice Emitted when a zero address is provided where it's not allowed
+	error ZeroAddressNotAllowed();
+
+	/// @notice Emitted when an invalid question type is provided
+	error InvalidQuestionType();
+
 	// Events
 
-	/// @notice Emitted when a new question contract is deployed
-	/// @param questionAddress The address of the newly deployed question contract
+	/// @notice Emitted when a new question contract is added to the space
+	/// @param questionAddress The address of the newly added question contract
 	/// @param questionType The type of the question (Fixed or Open)
-	event QuestionDeployed(address questionAddress, IQuestion.QuestionType questionType);
+	event QuestionAdded(address questionAddress, IQuestion.QuestionType questionType);
 
-	/// @notice Emitted when the space name is updated
+	/// @notice Emitted when the space info is updated
 	/// @param newName The new name of the space
-	event SpaceNameUpdated(string newName);
-
-	/// @notice Emitted when the space description is updated
 	/// @param newDescription The new description of the space
-	event SpaceDescriptionUpdated(string newDescription);
-
-	/// @notice Emitted when the space image URL is updated
 	/// @param newImageUrl The new image URL of the space
-	event SpaceImageUrlUpdated(string newImageUrl);
+	event SpaceInfoUpdated(string newName, string newDescription, string newImageUrl);
 
 	/// @notice Emitted when the default points contract is updated
 	/// @param newDefaultPoints The address of the new default points contract
 	event DefaultPointsUpdated(address newDefaultPoints);
 
 	/// @notice Emitted when the minimum points to add an open question option is updated
-	/// @param newMinPointsToAddOpenQuestionOption The new minimum points to add an open question option
+	/// @param newMinPointsToAddOpenQuestionOption The new minimum points required
 	event MinPointsToAddOpenQuestionOptionUpdated(uint256 newMinPointsToAddOpenQuestionOption);
 
 	// External Functions
 
-	/// @notice Deploys a new fixed question
-	/// @dev Only the owner can call this function. Emits a QuestionDeployed event.
-	/// @param questionTitle The title of the question
-	/// @param questionDescription The description of the question
-	/// @param deadline The deadline for voting (in Unix timestamp)
-	/// @param initialOptionTitles The titles of the initial options
-	/// @param initialOptionDescriptions The descriptions of the initial options
-	/// @return The address of the newly deployed question contract
-	function deployFixedQuestion(
-		string memory questionTitle,
-		string memory questionDescription,
-		uint256 deadline,
-		string[] memory initialOptionTitles,
-		string[] memory initialOptionDescriptions
-	) external returns (address);
+	/// @notice Adds a question to the space
+	/// @dev Requires CreateFixedQuestion or CreateOpenQuestion permission
+	/// @param question The address of the question contract
+	function addQuestion(address question) external;
 
-	/// @notice Deploys a new open question
-	/// @dev Only the owner can call this function. Emits a QuestionDeployed event.
-	/// @param questionTitle The title of the question
-	/// @param questionDescription The description of the question
-	/// @param deadline The deadline for voting (in Unix timestamp)
-	/// @return The address of the newly deployed question contract
-	function deployOpenQuestion(
-		string memory questionTitle,
-		string memory questionDescription,
-		uint256 deadline
-	) external returns (address);
-
-	/// @notice Updates the name of the space
-	/// @dev Only the owner can call this function. Emits a SpaceNameUpdated event.
-	/// @param _spaceName The new name of the space
-	function updateSpaceName(string memory _spaceName) external;
-
-	/// @notice Updates the description of the space
-	/// @dev Only the owner can call this function. Emits a SpaceDescriptionUpdated event.
-	/// @param _spaceDescription The new description of the space
-	function updateSpaceDescription(string memory _spaceDescription) external;
-
-	/// @notice Updates the image URL of the space
-	/// @dev Only the owner can call this function. Emits a SpaceImageUrlUpdated event.
-	/// @param _spaceImageUrl The new image URL of the space
-	function updateSpaceImageUrl(string memory _spaceImageUrl) external;
+	/// @notice Updates the space info
+	/// @dev Requires UpdateSpaceInfo permission
+	/// @param newName The new name of the space
+	/// @param newDescription The new description of the space
+	/// @param newImageUrl The new image URL of the space
+	function updateSpaceInfo(string memory newName, string memory newDescription, string memory newImageUrl) external;
 
 	/// @notice Updates the default points contract
-	/// @dev Only callable by a super admin. Emits a DefaultPointsUpdated event.
+	/// @dev Requires UpdateSpacePoints permission
 	/// @param newDefaultPoints The address of the new default points contract
 	function updateDefaultPoints(address newDefaultPoints) external;
 
-	/// @notice Updates the minimum points to add an open question option
-	/// @dev Only callable by a super admin. Emits a MinPointsToAddOpenQuestionOptionUpdated event.
-	/// @param newMinPointsToAddOpenQuestionOption The new minimum points to add an open question option
+	/// @notice Updates the minimum points required to add an open question option
+	/// @dev Requires UpdateSpacePoints permission
+	/// @param newMinPointsToAddOpenQuestionOption The new minimum points required
 	function updateMinPointsToAddOpenQuestionOption(uint256 newMinPointsToAddOpenQuestionOption) external;
 
 	/// @notice Checks if a user can add an open question option

@@ -4,6 +4,8 @@ out = "out"
 libs = ["lib"]
 fs_permissions = [{ access = "read", path = "./deployment_log.json" }]
 solc_version = "0.8.20"
+optimizer = true
+optimizer_runs = 200
 
 # Add this line to include OpenZeppelin
 remappings = ["@openzeppelin/=lib/openzeppelin-contracts/"]

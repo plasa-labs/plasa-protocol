@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @title ISpaceAccessControl - Interface for managing access control in Space contracts
-/// @notice This interface defines the structure for managing roles and permissions within a space
-/// @dev Implement this interface to create an access control system for space management
-interface ISpaceAccessControl {
-	/// @notice Error thrown when a user is not allowed to perform an action
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+
+/// @title Space Access Control Interface
+/// @dev Defines the structure for managing roles and permissions within a space
+interface ISpaceAccessControl is IAccessControl {
+	/// @dev Error thrown when a user is not allowed to perform an action
 	/// @param user The address of the user attempting the action
 	/// @param permissionName The name of the permission being checked
 	error NotAllowed(address user, PermissionName permissionName);
 
-	/// @notice Enum representing different permission levels
+	/// @dev Enum representing different permission levels
 	enum PermissionLevel {
 		ONLY_SUPERADMINS,
 		SUPERADMINS_AND_ADMINS,
@@ -18,7 +19,7 @@ interface ISpaceAccessControl {
 		NOBODY
 	}
 
-	/// @notice Enum representing different permission names
+	/// @dev Enum representing different permission names
 	enum PermissionName {
 		UpdateSpaceInfo,
 		UpdateSpacePoints,
@@ -35,29 +36,32 @@ interface ISpaceAccessControl {
 		LiftVetoOpenQuestionOption
 	}
 
-	/// @notice The role identifier for super admins
+	/// @dev Returns the role identifier for super admins
+	/// @return bytes32 The keccak256 hash of "SUPER_ADMIN_ROLE"
 	function SUPER_ADMIN_ROLE() external view returns (bytes32);
 
-	/// @notice The role identifier for admins
+	/// @dev Returns the role identifier for admins
+	/// @return bytes32 The keccak256 hash of "ADMIN_ROLE"
 	function ADMIN_ROLE() external view returns (bytes32);
 
-	/// @notice The role identifier for moderators
+	/// @dev Returns the role identifier for moderators
+	/// @return bytes32 The keccak256 hash of "MODERATOR_ROLE"
 	function MODERATOR_ROLE() external view returns (bytes32);
 
-	/// @notice Get the permission level for a given permission name
+	/// @dev Get the permission level for a given permission name
 	/// @param permissionName The name of the permission to check
-	/// @return The permission level for the given permission name
+	/// @return PermissionLevel The permission level for the given permission name
 	function permissions(PermissionName permissionName) external view returns (PermissionLevel);
 
-	/// @notice Set the permission level for a given permission name
-	/// @dev Only callable by accounts with the SUPER_ADMIN_ROLE
+	/// @dev Set the permission level for a given permission name
+	/// @notice Only callable by accounts with the SUPER_ADMIN_ROLE
 	/// @param permissionName The name of the permission to set
 	/// @param level The new permission level
-	function setPermission(PermissionName permissionName, PermissionLevel level) external;
+	function updatePermission(PermissionName permissionName, PermissionLevel level) external;
 
-	/// @notice Check if a user has permission for a given action
+	/// @dev Check if a user has permission for a given action
 	/// @param permissionName The name of the permission to check
 	/// @param user The address of the user to check
-	/// @return True if the user has permission, false otherwise
-	function checkPermission(PermissionName permissionName, address user) external view returns (bool);
+	/// @return bool True if the user has permission, false otherwise
+	function hasPermission(PermissionName permissionName, address user) external view returns (bool);
 }

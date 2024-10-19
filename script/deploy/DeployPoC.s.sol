@@ -11,10 +11,11 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import { FollowerSinceStamp } from "../../src/stamps/FollowerSinceStamp.sol";
 import { FollowerSincePoints } from "../../src/points/FollowerSincePoints.sol";
 import { Plasa } from "../../src/plasa/Plasa.sol";
+import { FixedQuestion } from "../../src/voting/FixedQuestion.sol";
 
 contract DeployPoC is Script {
 	function run() public {
-		uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+		uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
 
 		// Create an instance of DeployPoCArgs with the deployer's address
 		address deployer = vm.addr(deployerPrivateKey);
@@ -31,8 +32,6 @@ contract DeployPoC is Script {
 
 		Space space = new Space(
 			args.initialSuperAdmins,
-			args.initialAdmins,
-			args.initialModerators,
 			args.spaceName,
 			args.spaceDescription,
 			args.spaceImageUrl,
@@ -44,87 +43,30 @@ contract DeployPoC is Script {
 		// Set space initial super admin as Plasa owner
 		Plasa plasa = new Plasa(args.initialSuperAdmins[0]);
 
+		// Stop the broadcast with the deployer's private key
+		vm.stopBroadcast();
+
+		// Start a new broadcast with the initial super admin's private key
+		uint256 superAdminPrivateKey = vm.envUint("SUPER_ADMIN_PRIVATE_KEY");
+		vm.startBroadcast(superAdminPrivateKey);
+
 		plasa.addStamp(address(stamp));
 		plasa.addSpace(address(space));
 
+		// Deploy a fixed question using the super admin's private key
+		FixedQuestion fixedQuestion = new FixedQuestion(
+			address(space),
+			args.fixedQuestionTitle,
+			args.fixedQuestionDescription,
+			args.fixedQuestionDeadline,
+			args.fixedQuestionOptionTitles,
+			args.fixedQuestionOptionDescriptions
+		);
+
+		// Add the question to the space
+		space.addQuestion(address(fixedQuestion));
+
+		// Stop the broadcast with the super admin's private key
 		vm.stopBroadcast();
-
-		// Log deployment information in JSON format
-		console.log("DEPLOYMENT_LOG_START");
-		console.log("{");
-		console.log('  "DeployerAddress": "%s",', deployer);
-		console.log('  "ChainId": %d,', block.chainid);
-		// console.log('  "CompilerVersion": "%s",', vm.envString("FOUNDRY_SOLC_VERSION"));
-		console.log('  "Contracts": [');
-		console.log("    {");
-		console.log('      "FollowerSinceStamp": {');
-		console.log('        "address": "%s",', address(stamp));
-		console.log('        "deployer": "%s",', deployer);
-		console.log('        "contractName": "FollowerSinceStamp",');
-		console.log('        "sourcePath": "src/stamps/FollowerSinceStamp.sol",');
-		console.log('        "arguments": {');
-		console.log('          "signer": "%s",', args.stampSigner);
-		console.log('          "platform": "%s",', args.stampPlatform);
-		console.log('          "followed": "%s"', args.stampFollowed);
-		console.log("        }");
-		console.log("      }");
-		console.log("    },");
-		console.log("    {");
-		console.log('      "FollowerSincePoints": {');
-		console.log('        "address": "%s",', address(points));
-		console.log('        "deployer": "%s",', deployer);
-		console.log('        "contractName": "FollowerSincePoints",');
-		console.log('        "sourcePath": "src/points/FollowerSincePoints.sol",');
-		console.log('        "arguments": {');
-		console.log('          "followerStamp": "%s",', address(stamp));
-		console.log('          "name": "%s",', args.pointsName);
-		console.log('          "symbol": "%s"', args.pointsSymbol);
-		console.log("        }");
-		console.log("      }");
-		console.log("    },");
-		console.log("    {");
-		console.log('      "Space": {');
-		console.log('        "address": "%s",', address(space));
-		console.log('        "deployer": "%s",', deployer);
-		console.log('        "contractName": "Space",');
-		console.log('        "sourcePath": "src/spaces/Space.sol",');
-		console.log('        "arguments": {');
-		console.log('          "initialSuperAdmins": %s,', _formatAddressArray(args.initialSuperAdmins));
-		console.log('          "initialAdmins": %s,', _formatAddressArray(args.initialAdmins));
-		console.log('          "initialModerators": %s,', _formatAddressArray(args.initialModerators));
-		console.log('          "spaceName": "%s",', args.spaceName);
-		console.log('          "spaceDescription": "%s",', args.spaceDescription);
-		console.log('          "spaceImageUrl": "%s",', args.spaceImageUrl);
-		console.log('          "defaultPoints": "%s",', address(points));
-		console.log('          "minPointsToAddOpenQuestionOption": %d', args.minPointsToAddOpenQuestionOption);
-		console.log("        }");
-		console.log("      }");
-		console.log("    },");
-		console.log("    {");
-		console.log('      "Plasa": {');
-		console.log('        "address": "%s",', address(plasa));
-		console.log('        "deployer": "%s",', deployer);
-		console.log('        "contractName": "Plasa",');
-		console.log('        "sourcePath": "src/plasa/Plasa.sol",');
-		console.log('        "arguments": {');
-		console.log('          "initialOwner": "%s"', args.initialSuperAdmins[0]);
-		console.log("        }");
-		console.log("      }");
-		console.log("    }");
-		console.log("  ]");
-		console.log("}");
-		console.log("DEPLOYMENT_LOG_END");
-	}
-
-	function _formatAddressArray(address[] memory addresses) internal pure returns (string memory) {
-		bytes memory result = "[";
-		for (uint i = 0; i < addresses.length; i++) {
-			if (i > 0) {
-				result = abi.encodePacked(result, ",");
-			}
-			result = abi.encodePacked(result, '"', Strings.toHexString(uint160(addresses[i]), 20), '"');
-		}
-		result = abi.encodePacked(result, "]");
-		return string(result);
 	}
 }

@@ -63,17 +63,14 @@ contract FollowerSincePoints is IFollowerSincePoints, Points {
 
 	/// @notice Calculates points based on the duration of following using a square root formula
 	/// @dev Uses a square root calculation for non-linear growth curve:
-	///      - Longer following duration accumulates more points at a decreasing rate
-	///      - Formula: sqrt(durationInSeconds * 1e18) * 1e9 / 293938769
-	///      - 1e18 multiplication before sqrt maintains precision
-	///      - 1e9 multiplication after sqrt scales the result
-	///      - 293938769 division adjusts growth rate and final values
-	/// @dev Note: block.timestamp can be slightly manipulated by miners (up to ~900 seconds)
+	///      - 1 day (86400 seconds) ≈ 1 point
+	///      - 4 days (345600 seconds) ≈ 2 points
+	///      - Formula: sqrt(durationInSeconds) / sqrt(86400)
 	/// @param followerSince Timestamp when the user started following
 	/// @param timestamp Current timestamp for calculation
 	/// @return uint256 Calculated points, scaled to 18 decimal places
 	function _calculatePointsAtTimestamp(uint256 followerSince, uint256 timestamp) private pure returns (uint256) {
 		uint256 durationInSeconds = timestamp - followerSince;
-		return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
+		return (Math.sqrt(durationInSeconds) * 1e18) / Math.sqrt(86400);
 	}
 }

@@ -103,14 +103,16 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		return totalPoints;
 	}
 
-	/// @dev Calculates points based on the duration of following using a square root formula
-	/// @param followerSince The timestamp when the user started following
-	/// @param timestamp The current timestamp
-	/// @return The calculated points
+	/// @notice Calculates points based on the duration of following using a square root formula
+	/// @dev Uses a square root calculation for non-linear growth curve:
+	///      - 1 day (86400 seconds) ≈ 1 point
+	///      - 4 days (345600 seconds) ≈ 2 points
+	///      - Formula: sqrt(durationInSeconds) / sqrt(86400)
+	/// @param followerSince Timestamp when the user started following
+	/// @param timestamp Current timestamp for calculation
+	/// @return uint256 Calculated points, scaled to 18 decimal places
 	function _calculatePointsAtTimestamp(uint256 followerSince, uint256 timestamp) private pure returns (uint256) {
-		unchecked {
-			uint256 durationInSeconds = timestamp - followerSince;
-			return (Math.sqrt(durationInSeconds * 1e18) * 1e9) / 293938769;
-		}
+		uint256 durationInSeconds = timestamp - followerSince;
+		return (Math.sqrt(durationInSeconds) * 1e18) / Math.sqrt(86400);
 	}
 }

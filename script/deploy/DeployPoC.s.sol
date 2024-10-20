@@ -18,9 +18,11 @@ import { FixedQuestion } from "../../src/voting/FixedQuestion.sol";
 contract DeployPoC is Script {
 	function run() public {
 		uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+		uint256 superAdminPrivateKey = vm.envUint("SUPER_ADMIN_PRIVATE_KEY");
 
-		address deployer = vm.addr(deployerPrivateKey);
-		console.log("Deployer address:", deployer);
+		address superAdmin = vm.addr(superAdminPrivateKey);
+		console.log("Deployer address:", vm.addr(deployerPrivateKey));
+		console.log("Super Admin address:", superAdmin);
 
 		DeployPoCArgs deployArgs = new DeployPoCArgs();
 		DeployPoCArgs.DeploymentArgs memory args = deployArgs.getArgs();
@@ -28,7 +30,7 @@ contract DeployPoC is Script {
 		vm.startBroadcast(deployerPrivateKey);
 
 		// Deploy Plasa
-		Plasa plasa = new Plasa(args.initialSuperAdmins[0]);
+		Plasa plasa = new Plasa(superAdmin);
 
 		// Deploy Space 1 with FollowerSincePoints
 		FollowerSinceStamp stamp1 = new FollowerSinceStamp(args.stampSigner, args.stamp1Platform, args.stamp1Followed);
@@ -83,6 +85,11 @@ contract DeployPoC is Script {
 			args.question2OptionTitles,
 			args.question2OptionDescriptions
 		);
+
+		vm.stopBroadcast();
+
+		// Switch to super admin for adding stamps, spaces, and questions
+		vm.startBroadcast(superAdminPrivateKey);
 
 		// Add stamps, spaces, and questions to Plasa and respective spaces
 		plasa.addStamp(address(stamp1));

@@ -104,6 +104,9 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @param user The address of the user
 	/// @return IStampView.StampUser memory The user's stamp data
 	function _stampUser(address user) private view returns (IStampView.StampUser memory) {
+		if (balanceOf(user) == 0) {
+			return IStampView.StampUser(false, 0, 0, bytes(""));
+		}
 		uint256 tokenId = tokenOfOwnerByIndex(user, 0);
 		return IStampView.StampUser(true, tokenId, mintingTimestamps[tokenId], _specificUser(user));
 	}

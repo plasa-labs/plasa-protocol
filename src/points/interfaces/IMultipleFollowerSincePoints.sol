@@ -33,4 +33,14 @@ interface IMultipleFollowerSincePoints is IPoints {
 	/// @param index The zero-based index of the stamp in the stamps array
 	/// @return A StampInfo struct containing the stamp and multiplier information at the given index
 	function stampByIndex(uint256 index) external view returns (StampInfo memory);
+
+	/// @notice Gets the top holders between specified indices
+	/// @param start The starting index (inclusive)
+	/// @param end The ending index (exclusive)
+	/// @return addresses Array of addresses sorted by point balance
+	/// @return balances Array of corresponding point balances
+	function getTopHolders(
+		uint256 start,
+		uint256 end
+	) external view returns (address[] memory addresses, uint256[] memory balances);
 }

@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 import { IQuestionView } from "./IQuestionView.sol";
+import { ISpace } from "../../spaces/interfaces/ISpace.sol";
+import { IPoints } from "../../points/interfaces/IPoints.sol";
 
 /// @title Question Interface for a Decentralized Voting System
 /// @dev Interface for managing questions, options, and votes in a decentralized voting system
@@ -118,4 +120,22 @@ interface IQuestion is IQuestionView {
 	/// @notice Retrieves the type of question
 	/// @return The type of question
 	function questionType() external view returns (QuestionType);
+
+	// Additional state variables
+	/// @notice The Space contract associated with this question
+	function space() external view returns (ISpace);
+
+	/// @notice The Points contract associated with this question
+	function points() external view returns (IPoints);
+
+	/// @notice The address of the user who created this question
+	function creator() external view returns (address);
+
+	/// @notice Get a tag at a specific index
+	function tags(uint256 index) external view returns (string memory);
+
+	// Additional functions
+	/// @notice Updates the tags associated with the question
+	/// @param _tags The new array of tags
+	function updateTags(string[] memory _tags) external;
 }

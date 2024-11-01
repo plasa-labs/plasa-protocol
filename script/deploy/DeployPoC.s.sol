@@ -13,9 +13,75 @@ import { FollowerSinceStamp } from "../../src/stamps/FollowerSinceStamp.sol";
 import { FollowerSincePoints } from "../../src/points/FollowerSincePoints.sol";
 import { MultipleFollowerSincePoints } from "../../src/points/MultipleFollowerSincePoints.sol";
 import { Plasa } from "../../src/plasa/Plasa.sol";
-import { FixedQuestion } from "../../src/voting/FixedQuestion.sol";
+import { FixedQuestion } from "../../src/questions/FixedQuestion.sol";
 
 contract DeployPoC is Script {
+	function deploySpace1(
+		DeployPoCArgs.CommonArgs memory common,
+		DeployPoCArgs.Space1Args memory args
+	) private returns (Space, FollowerSincePoints, FollowerSinceStamp) {
+		FollowerSinceStamp stamp = new FollowerSinceStamp(common.stampSigner, args.stampPlatform, args.stampFollowed);
+		FollowerSincePoints points = new FollowerSincePoints(address(stamp), args.pointsName, args.pointsSymbol);
+		Space space = new Space(
+			common.initialSuperAdmins,
+			args.name,
+			args.description,
+			args.imageUrl,
+			address(points),
+			common.minPointsToAddOpenQuestionOption
+		);
+		return (space, points, stamp);
+	}
+
+	function deploySpace2(
+		DeployPoCArgs.CommonArgs memory common,
+		DeployPoCArgs.Space2Args memory args
+	) private returns (Space, MultipleFollowerSincePoints, FollowerSinceStamp[] memory) {
+		FollowerSinceStamp[] memory stamps = new FollowerSinceStamp[](args.stampPlatforms.length);
+		address[] memory stampAddresses = new address[](args.stampPlatforms.length);
+
+		for (uint256 i = 0; i < args.stampPlatforms.length; i++) {
+			stamps[i] = new FollowerSinceStamp(common.stampSigner, args.stampPlatforms[i], args.stampFollowed[i]);
+			stampAddresses[i] = address(stamps[i]);
+		}
+
+		MultipleFollowerSincePoints points = new MultipleFollowerSincePoints(
+			stampAddresses,
+			args.stampMultipliers,
+			args.pointsName,
+			args.pointsSymbol
+		);
+
+		Space space = new Space(
+			common.initialSuperAdmins,
+			args.name,
+			args.description,
+			args.imageUrl,
+			address(points),
+			common.minPointsToAddOpenQuestionOption
+		);
+
+		return (space, points, stamps);
+	}
+
+	function deployQuestion(
+		address spaceAddress,
+		address pointsAddress,
+		DeployPoCArgs.QuestionArgs memory args
+	) private returns (FixedQuestion) {
+		return
+			new FixedQuestion(
+				spaceAddress,
+				pointsAddress,
+				args.title,
+				args.description,
+				args.tags,
+				args.deadline,
+				args.optionTitles,
+				args.optionDescriptions
+			);
+	}
+
 	function run() public {
 		uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
 		uint256 superAdminPrivateKey = vm.envUint("SUPER_ADMIN_PRIVATE_KEY");
@@ -32,59 +98,19 @@ contract DeployPoC is Script {
 		// Deploy Plasa
 		Plasa plasa = new Plasa(superAdmin);
 
-		// Deploy Space 1 with FollowerSincePoints
-		FollowerSinceStamp stamp1 = new FollowerSinceStamp(args.stampSigner, args.stamp1Platform, args.stamp1Followed);
-		FollowerSincePoints points1 = new FollowerSincePoints(address(stamp1), args.points1Name, args.points1Symbol);
-		Space space1 = new Space(
-			args.initialSuperAdmins,
-			args.space1Name,
-			args.space1Description,
-			args.space1ImageUrl,
-			address(points1),
-			args.minPointsToAddOpenQuestionOption
+		// Deploy Space 1
+		(Space space1, FollowerSincePoints points1, FollowerSinceStamp stamp1) = deploySpace1(args.common, args.space1);
+
+		// Deploy Space 2
+		(Space space2, MultipleFollowerSincePoints points2, FollowerSinceStamp[] memory stamps2) = deploySpace2(
+			args.common,
+			args.space2
 		);
 
-		// Deploy Space 2 with MultipleFollowerSincePoints
-		FollowerSinceStamp[] memory stamps2 = new FollowerSinceStamp[](args.stamp2Platforms.length);
-		address[] memory stampAddresses2 = new address[](args.stamp2Platforms.length);
-		for (uint256 i = 0; i < args.stamp2Platforms.length; i++) {
-			stamps2[i] = new FollowerSinceStamp(args.stampSigner, args.stamp2Platforms[i], args.stamp2Followed[i]);
-			stampAddresses2[i] = address(stamps2[i]);
-		}
-		MultipleFollowerSincePoints points2 = new MultipleFollowerSincePoints(
-			stampAddresses2,
-			args.stamp2Multipliers,
-			args.points2Name,
-			args.points2Symbol
-		);
-		Space space2 = new Space(
-			args.initialSuperAdmins,
-			args.space2Name,
-			args.space2Description,
-			args.space2ImageUrl,
-			address(points2),
-			args.minPointsToAddOpenQuestionOption
-		);
+		// Deploy questions
+		FixedQuestion question1 = deployQuestion(address(space1), address(points1), args.question1);
 
-		// Deploy question for Space 1
-		FixedQuestion question1 = new FixedQuestion(
-			address(space1),
-			args.question1Title,
-			args.question1Description,
-			args.question1Deadline,
-			args.question1OptionTitles,
-			args.question1OptionDescriptions
-		);
-
-		// Deploy question for Space 2
-		FixedQuestion question2 = new FixedQuestion(
-			address(space2),
-			args.question2Title,
-			args.question2Description,
-			args.question2Deadline,
-			args.question2OptionTitles,
-			args.question2OptionDescriptions
-		);
+		FixedQuestion question2 = deployQuestion(address(space2), address(points2), args.question2);
 
 		vm.stopBroadcast();
 

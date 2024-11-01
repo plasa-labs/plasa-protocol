@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import { ISpace } from "./interfaces/ISpace.sol";
 import { ISpaceView } from "./interfaces/ISpaceView.sol";
-import { IQuestion, IQuestionView } from "../voting/interfaces/IQuestion.sol";
+import { IQuestion, IQuestionView } from "../questions/interfaces/IQuestion.sol";
 import { SpaceAccessControl } from "./SpaceAccessControl.sol";
 import { IPoints } from "../points/interfaces/IPoints.sol";
 

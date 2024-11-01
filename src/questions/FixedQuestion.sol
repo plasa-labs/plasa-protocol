@@ -21,12 +21,14 @@ contract FixedQuestion is Question, IFixedQuestion {
 	/// @param _initialOptionDescriptions An array of descriptions for the initial voting options
 	constructor(
 		address _space,
+		address _points,
 		string memory _title,
 		string memory _description,
+		string[] memory _tags,
 		uint256 _deadline,
 		string[] memory _initialOptionTitles,
 		string[] memory _initialOptionDescriptions
-	) Question(_space, _title, _description, _deadline) {
+	) Question(_space, _points, _title, _description, _deadline, _tags) {
 		questionType = QuestionType.Fixed;
 
 		if (_initialOptionTitles.length != _initialOptionDescriptions.length) {

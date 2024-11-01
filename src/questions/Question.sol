@@ -5,6 +5,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IQuestion } from "./interfaces/IQuestion.sol";
 import { ISpace } from "../spaces/interfaces/ISpace.sol";
 import { IQuestionView } from "./interfaces/IQuestionView.sol";
+import { IPoints } from "../points/interfaces/IPoints.sol";
 
 /// @title Abstract Question Contract for Decentralized Voting System
 /// @dev Implements base functionality for a voting question, inheriting from Ownable and IQuestion
@@ -31,8 +32,14 @@ abstract contract Question is Ownable, IQuestion {
 	/// @notice The Space contract associated with this question
 	ISpace public space;
 
+	/// @notice The Points contract associated with this question
+	IPoints public points;
+
 	/// @notice The address of the user who created this question
 	address public creator;
+
+	/// @notice Array of tags associated with this question
+	string[] public tags;
 
 	/// @dev Modifier to check if the voting is still active
 	/// @notice Reverts if the voting period has ended
@@ -47,11 +54,14 @@ abstract contract Question is Ownable, IQuestion {
 	/// @param _title The title of the question
 	/// @param _description The description of the question
 	/// @param _deadline The deadline for voting
+	/// @param _tags The array of tags associated with this question
 	constructor(
 		address _space,
+		address _points,
 		string memory _title,
 		string memory _description,
-		uint256 _deadline
+		uint256 _deadline,
+		string[] memory _tags
 	) Ownable(msg.sender) {
 		creator = msg.sender;
 		space = ISpace(_space);
@@ -59,6 +69,13 @@ abstract contract Question is Ownable, IQuestion {
 		title = _title;
 		description = _description;
 		deadline = _deadline;
+		tags = _tags;
+
+		if (_points == address(0)) {
+			points = space.defaultPoints();
+		} else {
+			points = IPoints(_points);
+		}
 
 		// Add an empty option at index 0
 		_options.push(OptionData("", "", address(0), 0, 0));
@@ -105,6 +122,12 @@ abstract contract Question is Ownable, IQuestion {
 	function getOption(uint256 optionId) external view returns (OptionData memory) {
 		if (optionId >= _options.length) revert InvalidOption();
 		return _options[optionId];
+	}
+
+	/// @notice Updates the tags of the question
+	/// @param _tags The new array of tags
+	function updateTags(string[] memory _tags) external onlyOwner {
+		tags = _tags;
 	}
 
 	// Internal functions
@@ -179,6 +202,7 @@ abstract contract Question is Ownable, IQuestion {
 				questionType,
 				title,
 				description,
+				tags,
 				creator,
 				kickoff,
 				deadline,

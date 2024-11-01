@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
 import { ISpaceView } from "./ISpaceView.sol";
 import { IPoints } from "../../points/interfaces/IPoints.sol";
-import { IQuestion } from "../../voting/interfaces/IQuestion.sol";
+import { IQuestion } from "../../questions/interfaces/IQuestion.sol";
 
 /// @title ISpace - Interface for managing community spaces in Plasa
 /// @dev Implement this interface to create a space contract that represents a community or organization

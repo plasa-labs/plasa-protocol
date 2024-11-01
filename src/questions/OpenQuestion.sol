@@ -17,12 +17,15 @@ contract OpenQuestion is Question, IOpenQuestion {
 	/// @param _title The title of the question
 	/// @param _description The description of the question
 	/// @param _deadline The deadline for voting on the question
+	/// @param _tags The array of tags associated with this question
 	constructor(
 		address _space,
+		address _points,
 		string memory _title,
 		string memory _description,
+		string[] memory _tags,
 		uint256 _deadline
-	) Question(_space, _title, _description, _deadline) {
+	) Question(_space, _points, _title, _description, _deadline, _tags) {
 		questionType = QuestionType.Open;
 	}
 

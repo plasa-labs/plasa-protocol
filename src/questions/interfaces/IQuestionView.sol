@@ -19,6 +19,7 @@ interface IQuestionView {
 		QuestionType questionType;
 		string title;
 		string description;
+		string[] tags;
 		address creator;
 		uint256 kickoff;
 		uint256 deadline;

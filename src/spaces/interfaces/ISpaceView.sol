@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { IPointsView } from "../../points/interfaces/IPointsView.sol";
-import { IQuestionView } from "../../voting/interfaces/IQuestionView.sol";
+import { IQuestionView } from "../../questions/interfaces/IQuestionView.sol";
 
 /// @title Interface for viewing Space data and user permissions
 /// @dev This interface defines structures and functions for retrieving Space information

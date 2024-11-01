@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { IPointsView } from "../../points/interfaces/IPointsView.sol";
+import { ISpaceView } from "../../spaces/interfaces/ISpaceView.sol";
 
 /// @title Question View Interface
 /// @notice Interface for retrieving question and option data for users
@@ -71,6 +72,7 @@ interface IQuestionView {
 		QuestionData data;
 		QuestionUser user;
 		OptionView[] options;
+		ISpaceView.SpacePreview space;
 		IPointsView.PointsView points;
 	}
 

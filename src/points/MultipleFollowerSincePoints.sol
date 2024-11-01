@@ -115,7 +115,10 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	/// @param followerSince Timestamp when the user started following
 	/// @param timestamp Current timestamp for calculation
 	/// @return uint256 Calculated points, scaled to 18 decimal places
-	function _calculatePointsAtTimestamp(uint256 followerSince, uint256 timestamp) private pure returns (uint256) {
+	function _calculatePointsAtTimestamp(
+		uint256 followerSince,
+		uint256 timestamp
+	) internal pure virtual returns (uint256) {
 		uint256 durationInSeconds = timestamp - followerSince;
 		// Convert duration to days with 18 decimal precision
 		// 1e18 * duration / seconds_per_day

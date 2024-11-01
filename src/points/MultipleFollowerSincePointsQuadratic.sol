@@ -91,12 +91,8 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		uint256 totalPoints;
 		uint256 stampTotalSupply = stampInfo.stamp.totalSupply();
 
-		if (stampTotalSupply == 0) return 0;
-
-		IFollowerSinceStamp stamp = stampInfo.stamp;
-
 		for (uint256 j = 1; j <= stampTotalSupply; ) {
-			uint256 followerSince = stamp.followStartTimestamp(j);
+			uint256 followerSince = stampInfo.stamp.followStartTimestamp(j);
 			if (followerSince != 0 && followerSince <= timestamp) {
 				totalPoints += _calculatePointsAtTimestamp(followerSince, timestamp) * stampInfo.multiplier;
 			}
@@ -107,122 +103,16 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		return totalPoints;
 	}
 
-	/// @notice Calculates points based on the duration of following using a linear formula
-	/// @dev Uses a linear calculation:
-	///      - 1 day (86400 seconds) = 1 point
-	///      - 2 days (172800 seconds) = 2 points
-	///      - Formula: durationInSeconds / 86400
+	/// @notice Calculates points based on the duration of following using a square root formula
+	/// @dev Uses a square root calculation for non-linear growth curve:
+	///      - 1 day (86400 seconds) ≈ 1 point
+	///      - 4 days (345600 seconds) ≈ 2 points
+	///      - Formula: sqrt(durationInSeconds) / sqrt(86400)
 	/// @param followerSince Timestamp when the user started following
 	/// @param timestamp Current timestamp for calculation
 	/// @return uint256 Calculated points, scaled to 18 decimal places
 	function _calculatePointsAtTimestamp(uint256 followerSince, uint256 timestamp) private pure returns (uint256) {
 		uint256 durationInSeconds = timestamp - followerSince;
-		// Convert duration to days with 18 decimal precision
-		// 1e18 * duration / seconds_per_day
-		return (durationInSeconds * 1e18) / 86400;
-	}
-
-	/// @notice Gets the top holders between specified indices
-	/// @param start The starting index (inclusive)
-	/// @param end The ending index (exclusive)
-	/// @return addresses Array of addresses sorted by point balance
-	/// @return balances Array of corresponding point balances
-	function getTopHolders(
-		uint256 start,
-		uint256 end
-	) external view returns (address[] memory addresses, uint256[] memory balances) {
-		if (start >= end) revert IndexOutOfBounds();
-
-		// Get total unique holders
-		uint256 totalHolders = 0;
-		uint256 stampTotalSupply;
-		address[] memory tempHolders = new address[](_getTotalUniqueHolders());
-
-		// Collect unique holders across all stamps
-		for (uint256 i; i < _stampCount; ) {
-			stampTotalSupply = _stamps[i].stamp.totalSupply();
-			for (uint256 j = 1; j <= stampTotalSupply; ) {
-				address holder = _stamps[i].stamp.ownerOf(j);
-				if (!_isAddressInArray(tempHolders, holder, totalHolders)) {
-					tempHolders[totalHolders++] = holder;
-				}
-				unchecked {
-					++j;
-				}
-			}
-			unchecked {
-				++i;
-			}
-		}
-
-		// Validate indices
-		if (end > totalHolders) {
-			end = totalHolders;
-		}
-		uint256 length = end - start;
-
-		// Create return arrays
-		addresses = new address[](length);
-		balances = new uint256[](length);
-
-		// Create temporary arrays for sorting
-		address[] memory sortedAddresses = new address[](totalHolders);
-		uint256[] memory sortedBalances = new uint256[](totalHolders);
-
-		// Get balances and sort
-		for (uint256 i = 0; i < totalHolders; ) {
-			sortedAddresses[i] = tempHolders[i];
-			sortedBalances[i] = balanceOf(tempHolders[i]);
-			unchecked {
-				++i;
-			}
-		}
-
-		// Sort using insertion sort (efficient for smaller arrays)
-		for (uint256 i = 1; i < totalHolders; ) {
-			uint256 j = i;
-			while (j > 0 && sortedBalances[j - 1] < sortedBalances[j]) {
-				// Swap balances
-				(sortedBalances[j], sortedBalances[j - 1]) = (sortedBalances[j - 1], sortedBalances[j]);
-				// Swap addresses
-				(sortedAddresses[j], sortedAddresses[j - 1]) = (sortedAddresses[j - 1], sortedAddresses[j]);
-				unchecked {
-					--j;
-				}
-			}
-			unchecked {
-				++i;
-			}
-		}
-
-		// Copy requested range to return arrays
-		for (uint256 i = 0; i < length; ) {
-			addresses[i] = sortedAddresses[start + i];
-			balances[i] = sortedBalances[start + i];
-			unchecked {
-				++i;
-			}
-		}
-	}
-
-	/// @dev Helper function to check if address exists in array
-	function _isAddressInArray(address[] memory array, address addr, uint256 length) private pure returns (bool) {
-		for (uint256 i = 0; i < length; ) {
-			if (array[i] == addr) return true;
-			unchecked {
-				++i;
-			}
-		}
-		return false;
-	}
-
-	/// @dev Helper function to get total unique holders across all stamps
-	function _getTotalUniqueHolders() private view returns (uint256 maxHolders) {
-		for (uint256 i; i < _stampCount; ) {
-			maxHolders += _stamps[i].stamp.totalSupply();
-			unchecked {
-				++i;
-			}
-		}
+		return (Math.sqrt(durationInSeconds) * 1e18) / Math.sqrt(86400);
 	}
 }

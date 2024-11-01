@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { Points } from "./Points.sol";
+import { Points, IPoints } from "./Points.sol";
 import { IFollowerSincePoints } from "./interfaces/IFollowerSincePoints.sol";
 import { IFollowerSinceStamp } from "../stamps/interfaces/IFollowerSinceStamp.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -72,5 +72,75 @@ contract FollowerSincePoints is IFollowerSincePoints, Points {
 	function _calculatePointsAtTimestamp(uint256 followerSince, uint256 timestamp) private pure returns (uint256) {
 		uint256 durationInSeconds = timestamp - followerSince;
 		return (Math.sqrt(durationInSeconds) * 1e18) / Math.sqrt(86400);
+	}
+
+	/// @inheritdoc IPoints
+	function getTopHolders(uint256 start, uint256 end) public view override(IPoints, Points) returns (Holder[] memory) {
+		// Get total number of stamps
+		uint256 totalStamps = followerStamp.totalSupply();
+		if (totalStamps == 0 || start >= end) {
+			return new Holder[](0);
+		}
+
+		// Create temporary array to store all holders with non-zero balances
+		Holder[] memory holders = new Holder[](totalStamps);
+		uint256 actualHolderCount = 0;
+		uint256 currentTimestamp = block.timestamp;
+
+		// Collect all holders with non-zero balances
+		for (uint256 i = 1; i <= totalStamps; ) {
+			address owner = followerStamp.ownerOf(i);
+			uint256 balance = _balanceAtTimestamp(owner, currentTimestamp);
+
+			if (balance > 0) {
+				holders[actualHolderCount] = Holder({ user: owner, balance: balance });
+				unchecked {
+					++actualHolderCount;
+				}
+			}
+			unchecked {
+				++i;
+			}
+		}
+
+		// If no holders with balance, return empty array
+		if (actualHolderCount == 0) {
+			return new Holder[](0);
+		}
+
+		// Sort holders by balance (bubble sort for simplicity)
+		// Can be optimized with quicksort for larger datasets
+		for (uint256 i = 0; i < actualHolderCount - 1; ) {
+			for (uint256 j = 0; j < actualHolderCount - i - 1; ) {
+				if (holders[j].balance < holders[j + 1].balance) {
+					Holder memory temp = holders[j];
+					holders[j] = holders[j + 1];
+					holders[j + 1] = temp;
+				}
+				unchecked {
+					++j;
+				}
+			}
+			unchecked {
+				++i;
+			}
+		}
+
+		// Calculate the actual slice size
+		uint256 sliceSize = end > actualHolderCount ? actualHolderCount - start : end - start;
+		if (start >= actualHolderCount) {
+			return new Holder[](0);
+		}
+
+		// Create and fill result array with the requested slice
+		Holder[] memory result = new Holder[](sliceSize);
+		for (uint256 i = 0; i < sliceSize; ) {
+			result[i] = holders[start + i];
+			unchecked {
+				++i;
+			}
+		}
+
+		return result;
 	}
 }

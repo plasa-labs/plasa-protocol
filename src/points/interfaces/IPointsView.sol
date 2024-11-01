@@ -5,12 +5,19 @@ pragma solidity ^0.8.20;
 /// @notice This interface defines the read-only functions for querying the state of a non-transferable token system
 /// @dev Implement this interface for contracts that need to provide a view into the Points system
 interface IPointsView {
+	struct Holder {
+		address user;
+		uint256 balance;
+	}
+
 	/// @notice Struct containing basic information about the Points contract
 	/// @dev This struct should be used to return general data about the Points system
 	struct PointsData {
 		address contractAddress; /// @notice The address of the Points contract
 		string name; /// @notice The name of the Points token
 		string symbol; /// @notice The symbol of the Points token
+		uint256 totalSupply; /// @notice The total supply of Points
+		Holder[] top10Holders; /// @notice The top 10 holders of the Points
 	}
 
 	/// @notice Struct containing user-specific information

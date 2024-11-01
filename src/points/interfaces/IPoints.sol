@@ -21,4 +21,10 @@ interface IPoints is IERC20Metadata, IPointsView {
 	/// @param timestamp The timestamp at which to check the total supply
 	/// @return The total supply at the given timestamp
 	function totalSupplyAtTimestamp(uint256 timestamp) external view returns (uint256);
+
+	/// @notice Returns the top holders between specified indices
+	/// @param start The starting index (inclusive)
+	/// @param end The ending index (exclusive)
+	/// @return Array of holders sorted by point balance
+	function getTopHolders(uint256 start, uint256 end) external view returns (Holder[] memory);
 }

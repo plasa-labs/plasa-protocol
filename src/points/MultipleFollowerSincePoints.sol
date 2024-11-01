@@ -1,18 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { Points } from "./Points.sol";
+import { Points, IPoints } from "./Points.sol";
 import { IFollowerSinceStamp } from "../stamps/interfaces/IFollowerSinceStamp.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { IMultipleFollowerSincePoints } from "./interfaces/IMultipleFollowerSincePoints.sol";
 
 /// @title MultipleFollowerSincePoints - A non-transferable token based on multiple follower durations
 /// @notice This contract calculates points based on how long a user has been a follower across multiple accounts
-/// @dev Inherits from Points and implements IMultipleFollowerSincePoints, using multiple IFollowerSinceStamp for duration calculation
+/// @dev Inherits from Points and implements IMultipleFollowerSincePoints
 contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
+	// State Variables
 	StampInfo[] private _stamps;
 	uint256 private immutable _stampCount;
 
+	/// @notice Initializes the contract with multiple follower stamps and their multipliers
+	/// @param _stampAddresses Array of follower stamp contract addresses
+	/// @param _multipliers Array of multipliers corresponding to each stamp
+	/// @param _name Name of the token
+	/// @param _symbol Symbol of the token
 	constructor(
 		address[] memory _stampAddresses,
 		uint256[] memory _multipliers,
@@ -26,6 +32,8 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		_stampCount = _stampAddresses.length;
 	}
 
+	// External Functions
+
 	/// @inheritdoc IMultipleFollowerSincePoints
 	function stamps() external view returns (StampInfo[] memory) {
 		return _stamps;
@@ -36,6 +44,29 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		if (index >= _stamps.length) revert IndexOutOfBounds();
 		return _stamps[index];
 	}
+
+	/// @inheritdoc IMultipleFollowerSincePoints
+	function getMultipleFollowerSincePointsView(
+		address user
+	) external view returns (MultipleFollowerSincePointsView memory) {
+		return MultipleFollowerSincePointsView({ pointsView: getPointsView(user), stamps: _getPointsStampViews(user) });
+	}
+
+	/// @inheritdoc IPoints
+	function getTopHolders(uint256 start, uint256 end) public view override(IPoints, Points) returns (Holder[] memory) {
+		if (start >= end) revert IndexOutOfBounds();
+
+		uint256 maxSize = _getTotalUniqueHolders();
+		if (maxSize == 0) return new Holder[](0);
+
+		Holder[] memory holders = new Holder[](maxSize);
+		uint256 totalHolders = _collectHolders(holders);
+
+		if (start >= totalHolders) return new Holder[](0);
+		return _paginateAndSortHolders(holders, totalHolders, start, end);
+	}
+
+	// Internal Functions
 
 	/// @inheritdoc Points
 	function _balanceAtTimestamp(address account, uint256 timestamp) internal view override returns (uint256) {
@@ -63,11 +94,9 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		return totalPoints;
 	}
 
+	// Private Functions
+
 	/// @dev Calculates points for a specific stamp and account at a given timestamp
-	/// @param stampInfo The StampInfo struct containing stamp and multiplier information
-	/// @param account The address of the account to calculate points for
-	/// @param timestamp The timestamp at which to calculate points
-	/// @return The calculated points for the stamp and account
 	function _calculatePointsForStamp(
 		StampInfo storage stampInfo,
 		address account,
@@ -125,29 +154,110 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		return (durationInSeconds * 1e18) / 86400;
 	}
 
-	/// @notice Gets the top holders between specified indices
-	/// @param start The starting index (inclusive)
-	/// @param end The ending index (exclusive)
-	/// @return addresses Array of addresses sorted by point balance
-	/// @return balances Array of corresponding point balances
-	function getTopHolders(
-		uint256 start,
-		uint256 end
-	) external view returns (address[] memory addresses, uint256[] memory balances) {
-		if (start >= end) revert IndexOutOfBounds();
+	function _getPointsStampViews(address user) private view returns (PointsStampView[] memory) {
+		PointsStampView[] memory views = new PointsStampView[](_stampCount);
 
-		// Get total unique holders
-		uint256 totalHolders = 0;
-		uint256 stampTotalSupply;
-		address[] memory tempHolders = new address[](_getTotalUniqueHolders());
+		for (uint256 i = 0; i < _stampCount; ) {
+			StampInfo storage stampInfo = _stamps[i];
+			IFollowerSinceStamp stamp = stampInfo.stamp;
 
-		// Collect unique holders across all stamps
+			// Get the stamp view from the stamp contract
+			IFollowerSinceStamp.StampView memory stampView = stamp.getStampView(user);
+
+			// Calculate points for this stamp
+			uint256 followerSince = stamp.getFollowerSinceTimestamp(user);
+			uint256 points = 0;
+			if (followerSince != 0 && followerSince <= block.timestamp) {
+				points = _calculatePointsAtTimestamp(followerSince, block.timestamp) * stampInfo.multiplier;
+			}
+
+			// Create the points stamp data
+			PointsStampData memory data = PointsStampData({
+				contractAddress: address(stamp),
+				stampType: stampView.data.stampType,
+				name: stampView.data.name,
+				symbol: stampView.data.symbol,
+				totalSupply: stampView.data.totalSupply,
+				specific: stampView.data.specific,
+				multiplier: stampInfo.multiplier
+			});
+
+			// Create the points stamp user data
+			PointsStampUser memory userData = PointsStampUser({
+				owns: stampView.user.owns,
+				stampId: stampView.user.stampId,
+				mintingTimestamp: stampView.user.mintingTimestamp,
+				specific: stampView.user.specific,
+				points: points
+			});
+
+			// Combine into final view
+			views[i] = PointsStampView({ data: data, user: userData });
+
+			unchecked {
+				++i;
+			}
+		}
+
+		return views;
+	}
+
+	function _getStampsView(address user) private view returns (PointsStampView[] memory) {
+		return _getPointsStampViews(user);
+	}
+
+	/// @dev Helper function to get total unique holders across all stamps
+	function _getTotalUniqueHolders() private view returns (uint256 maxHolders) {
+		// Sum up all stamp supplies for a conservative upper bound
 		for (uint256 i; i < _stampCount; ) {
-			stampTotalSupply = _stamps[i].stamp.totalSupply();
-			for (uint256 j = 1; j <= stampTotalSupply; ) {
-				address holder = _stamps[i].stamp.ownerOf(j);
-				if (!_isAddressInArray(tempHolders, holder, totalHolders)) {
-					tempHolders[totalHolders++] = holder;
+			unchecked {
+				maxHolders += _stamps[i].stamp.totalSupply();
+				++i;
+			}
+		}
+	}
+
+	/// @dev Insertion sort implementation optimized for small arrays
+	function _insertionSort(Holder[] memory arr, uint256 length) private pure {
+		for (uint256 i = 1; i < length; ) {
+			uint256 j = i;
+			while (j > 0 && arr[j - 1].balance < arr[j].balance) {
+				(arr[j], arr[j - 1]) = (arr[j - 1], arr[j]);
+				unchecked {
+					--j;
+				}
+			}
+			unchecked {
+				++i;
+			}
+		}
+	}
+
+	/// @dev Helper function to collect holders and their balances
+	function _collectHolders(Holder[] memory holders) private view returns (uint256 totalHolders) {
+		for (uint256 i; i < _stampCount; ) {
+			uint256 stampSupply = _stamps[i].stamp.totalSupply();
+			for (uint256 j = 1; j <= stampSupply; ) {
+				address owner = _stamps[i].stamp.ownerOf(j);
+
+				// Check if holder already exists
+				bool found = false;
+				for (uint256 k; k < totalHolders; ) {
+					if (holders[k].user == owner) {
+						found = true;
+						break;
+					}
+					unchecked {
+						++k;
+					}
+				}
+
+				// Add new holder with their balance
+				if (!found) {
+					holders[totalHolders] = Holder({ user: owner, balance: balanceOf(owner) });
+					unchecked {
+						++totalHolders;
+					}
 				}
 				unchecked {
 					++j;
@@ -157,111 +267,31 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 				++i;
 			}
 		}
+	}
 
-		// If no holders, return empty arrays
-		if (totalHolders == 0) {
-			return (new address[](0), new uint256[](0));
-		}
-
-		// Validate start index
-		if (start >= totalHolders) revert IndexOutOfBounds();
-
-		// Adjust end if it exceeds total holders
+	/// @dev Helper function to paginate and sort holders
+	function _paginateAndSortHolders(
+		Holder[] memory holders,
+		uint256 totalHolders,
+		uint256 start,
+		uint256 end
+	) private pure returns (Holder[] memory) {
+		// Validate pagination
+		if (start >= totalHolders) return new Holder[](0);
 		end = Math.min(end, totalHolders);
 		uint256 length = end - start;
 
-		// Create return arrays
-		addresses = new address[](length);
-		balances = new uint256[](length);
+		// Sort only the actual holders (not the entire array)
+		_insertionSort(holders, totalHolders);
 
-		// Create temporary arrays for sorting
-		address[] memory sortedAddresses = new address[](totalHolders);
-		uint256[] memory sortedBalances = new uint256[](totalHolders);
-
-		// Get balances and sort
-		for (uint256 i = 0; i < totalHolders; ) {
-			sortedAddresses[i] = tempHolders[i];
-			sortedBalances[i] = balanceOf(tempHolders[i]);
+		// Return paginated result
+		Holder[] memory result = new Holder[](length);
+		for (uint256 i; i < length; ) {
+			result[i] = holders[start + i];
 			unchecked {
 				++i;
 			}
 		}
-
-		// Replace insertion sort with optimized quicksort for larger datasets
-		if (totalHolders > 10) {
-			_quickSort(sortedAddresses, sortedBalances, 0, int256(totalHolders - 1));
-		} else {
-			// Keep insertion sort for small arrays
-			for (uint256 i = 1; i < totalHolders; ) {
-				uint256 j = i;
-				while (j > 0 && sortedBalances[j - 1] < sortedBalances[j]) {
-					(sortedBalances[j], sortedBalances[j - 1]) = (sortedBalances[j - 1], sortedBalances[j]);
-					(sortedAddresses[j], sortedAddresses[j - 1]) = (sortedAddresses[j - 1], sortedAddresses[j]);
-					unchecked {
-						--j;
-					}
-				}
-				unchecked {
-					++i;
-				}
-			}
-		}
-
-		// Copy requested range to return arrays
-		for (uint256 i = 0; i < length; ) {
-			addresses[i] = sortedAddresses[start + i];
-			balances[i] = sortedBalances[start + i];
-			unchecked {
-				++i;
-			}
-		}
-	}
-
-	/// @dev Helper function to check if address exists in array
-	function _isAddressInArray(address[] memory array, address addr, uint256 length) private pure returns (bool) {
-		for (uint256 i = 0; i < length; ) {
-			if (array[i] == addr) return true;
-			unchecked {
-				++i;
-			}
-		}
-		return false;
-	}
-
-	/// @dev Helper function to get total unique holders across all stamps
-	/// @return maxHolders A conservative estimate of maximum possible unique holders
-	function _getTotalUniqueHolders() private view returns (uint256 maxHolders) {
-		// Find the stamp with maximum supply as a better estimate
-		for (uint256 i; i < _stampCount; ) {
-			uint256 supply = _stamps[i].stamp.totalSupply();
-			maxHolders = Math.max(maxHolders, supply);
-			unchecked {
-				++i;
-			}
-		}
-	}
-
-	/// @dev Quicksort implementation for more efficient sorting of larger arrays
-	function _quickSort(address[] memory addresses, uint256[] memory balances, int256 left, int256 right) private pure {
-		if (left >= right) return;
-
-		int256 i = left;
-		int256 j = right;
-		uint256 pivot = balances[uint256(left + (right - left) / 2)];
-
-		while (i <= j) {
-			while (balances[uint256(i)] > pivot) i++;
-			while (balances[uint256(j)] < pivot) j--;
-
-			if (i <= j) {
-				(balances[uint256(i)], balances[uint256(j)]) = (balances[uint256(j)], balances[uint256(i)]);
-				(addresses[uint256(i)], addresses[uint256(j)]) = (addresses[uint256(j)], addresses[uint256(i)]);
-				i++;
-				j--;
-			}
-		}
-
-		if (left < j) _quickSort(addresses, balances, left, j);
-		if (i < right) _quickSort(addresses, balances, i, right);
+		return result;
 	}
 }

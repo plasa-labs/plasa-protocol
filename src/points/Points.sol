@@ -89,11 +89,19 @@ abstract contract Points is IPoints {
 		return _decimals;
 	}
 
+	function getTopHolders(uint256 start, uint256 end) public view virtual returns (Holder[] memory);
+
 	/// @inheritdoc IPointsView
 	function getPointsView(address user) public view virtual override returns (PointsView memory) {
 		return
 			PointsView({
-				data: PointsData({ contractAddress: address(this), name: name(), symbol: symbol() }),
+				data: PointsData({
+					contractAddress: address(this),
+					name: name(),
+					symbol: symbol(),
+					totalSupply: totalSupply(),
+					top10Holders: getTopHolders(0, 10)
+				}),
 				user: PointsUser({ currentBalance: balanceOf(user) })
 			});
 	}

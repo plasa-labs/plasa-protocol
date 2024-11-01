@@ -22,3 +22,4 @@ broadcast/
 .commands
 
 DeployPoCArgs.sol
+DeploySingleArgs.sol

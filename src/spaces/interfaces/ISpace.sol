@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
 import { ISpaceView } from "./ISpaceView.sol";
 import { IPoints } from "../../points/interfaces/IPoints.sol";
+import { IQuestionView } from "../../questions/interfaces/IQuestionView.sol";
 import { IQuestion } from "../../questions/interfaces/IQuestion.sol";
 
 /// @title ISpace - Interface for managing community spaces in Plasa
@@ -22,7 +23,7 @@ interface ISpace is ISpaceAccessControl, ISpaceView {
 	/// @notice Emitted when a new question contract is added to the space
 	/// @param questionAddress The address of the newly added question contract
 	/// @param questionType The type of the question (Fixed or Open)
-	event QuestionAdded(address questionAddress, IQuestion.QuestionType questionType);
+	event QuestionAdded(address questionAddress, IQuestionView.QuestionType questionType);
 
 	/// @notice Emitted when the space info is updated
 	/// @param newName The new name of the space

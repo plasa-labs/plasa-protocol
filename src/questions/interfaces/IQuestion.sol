@@ -4,17 +4,28 @@ pragma solidity ^0.8.20;
 import { IQuestionView } from "./IQuestionView.sol";
 import { ISpace } from "../../spaces/interfaces/ISpace.sol";
 import { IPoints } from "../../points/interfaces/IPoints.sol";
+import { ISpaceAccessControl } from "../../spaces/interfaces/ISpaceAccessControl.sol";
 
 /// @title Question Interface for a Decentralized Voting System
 /// @dev Interface for managing questions, options, and votes in a decentralized voting system
 /// @notice This interface provides functions for creating, updating, and interacting with voting questions
 interface IQuestion is IQuestionView {
 	// Events
-	/// @dev Emitted when a question's details are updated
+	/// @dev Emitted when a question's title is updated
 	/// @param newTitle The updated title of the question
+	event QuestionTitleUpdated(string newTitle);
+
+	/// @dev Emitted when a question's description is updated
 	/// @param newDescription The updated description of the question
+	event QuestionDescriptionUpdated(string newDescription);
+
+	/// @dev Emitted when a question's deadline is updated
 	/// @param newDeadline The updated deadline for voting
-	event QuestionUpdated(string newTitle, string newDescription, uint256 newDeadline);
+	event QuestionDeadlineUpdated(uint256 newDeadline);
+
+	/// @dev Emitted when a question's tags are updated
+	/// @param newTags The updated tags for the question
+	event QuestionTagsUpdated(string[] newTags);
 
 	/// @dev Emitted when a vote is cast
 	/// @param voter The address of the voter
@@ -37,6 +48,9 @@ interface IQuestion is IQuestionView {
 
 	/// @dev Thrown when an invalid option ID is provided for voting
 	error InvalidOption();
+
+	/// @dev Thrown when a user is not allowed to perform an action
+	error NotAllowed(address user, ISpaceAccessControl.PermissionName permissionName);
 
 	// Public variables
 	/// @notice Retrieves the title of the question

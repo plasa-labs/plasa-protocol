@@ -27,6 +27,11 @@ contract OpenQuestion is Question, IOpenQuestion {
 		uint256 _deadline
 	) Question(_space, _points, _title, _description, _deadline, _tags) {
 		questionType = QuestionType.Open;
+
+		// Check if creator has permission to create open questions
+		if (!space.hasPermission(ISpaceAccessControl.PermissionName.CreateOpenQuestion, msg.sender)) {
+			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.CreateOpenQuestion);
+		}
 	}
 
 	/// @inheritdoc IOpenQuestion

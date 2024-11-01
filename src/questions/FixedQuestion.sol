@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import { Question } from "./Question.sol";
 import { IFixedQuestion, IQuestion } from "./interfaces/IFixedQuestion.sol";
+import { ISpaceAccessControl } from "../spaces/interfaces/ISpaceAccessControl.sol";
 
 /// @title Fixed Question Contract for Voting System
 /// @dev Implements a fixed-choice voting system where users can vote only once on predefined options
@@ -29,6 +30,11 @@ contract FixedQuestion is Question, IFixedQuestion {
 		string[] memory _initialOptionTitles,
 		string[] memory _initialOptionDescriptions
 	) Question(_space, _points, _title, _description, _deadline, _tags) {
+		// Check if creator has permission to create fixed questions
+		if (!space.hasPermission(ISpaceAccessControl.PermissionName.CreateFixedQuestion, msg.sender)) {
+			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.CreateFixedQuestion);
+		}
+
 		questionType = QuestionType.Fixed;
 
 		if (_initialOptionTitles.length != _initialOptionDescriptions.length) {

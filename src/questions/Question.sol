@@ -6,6 +6,7 @@ import { IQuestion } from "./interfaces/IQuestion.sol";
 import { ISpace } from "../spaces/interfaces/ISpace.sol";
 import { IQuestionView } from "./interfaces/IQuestionView.sol";
 import { IPoints } from "../points/interfaces/IPoints.sol";
+import { ISpaceAccessControl } from "../spaces/interfaces/ISpaceAccessControl.sol";
 
 /// @title Abstract Question Contract for Decentralized Voting System
 /// @dev Implements base functionality for a voting question, inheriting from Ownable and IQuestion
@@ -96,21 +97,30 @@ abstract contract Question is Ownable, IQuestion {
 	}
 
 	/// @inheritdoc IQuestion
-	function updateTitle(string memory _title) external onlyOwner {
+	function updateTitle(string memory _title) external {
+		if (!space.hasPermission(ISpaceAccessControl.PermissionName.UpdateQuestionInfo, msg.sender)) {
+			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.UpdateQuestionInfo);
+		}
 		title = _title;
-		emit QuestionUpdated(_title, description, deadline);
+		emit QuestionTitleUpdated(_title);
 	}
 
 	/// @inheritdoc IQuestion
-	function updateDescription(string memory _description) external onlyOwner {
+	function updateDescription(string memory _description) external {
+		if (!space.hasPermission(ISpaceAccessControl.PermissionName.UpdateQuestionInfo, msg.sender)) {
+			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.UpdateQuestionInfo);
+		}
 		description = _description;
-		emit QuestionUpdated(title, _description, deadline);
+		emit QuestionDescriptionUpdated(_description);
 	}
 
 	/// @inheritdoc IQuestion
-	function updateDeadline(uint256 _deadline) external onlyOwner {
+	function updateDeadline(uint256 _deadline) external {
+		if (!space.hasPermission(ISpaceAccessControl.PermissionName.UpdateQuestionDeadline, msg.sender)) {
+			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.UpdateQuestionDeadline);
+		}
 		deadline = _deadline;
-		emit QuestionUpdated(title, description, _deadline);
+		emit QuestionDeadlineUpdated(_deadline);
 	}
 
 	/// @inheritdoc IQuestion
@@ -126,8 +136,12 @@ abstract contract Question is Ownable, IQuestion {
 
 	/// @notice Updates the tags of the question
 	/// @param _tags The new array of tags
-	function updateTags(string[] memory _tags) external onlyOwner {
+	function updateTags(string[] memory _tags) external {
+		if (!space.hasPermission(ISpaceAccessControl.PermissionName.UpdateQuestionInfo, msg.sender)) {
+			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.UpdateQuestionInfo);
+		}
 		tags = _tags;
+		emit QuestionTagsUpdated(_tags);
 	}
 
 	// Internal functions
@@ -179,7 +193,7 @@ abstract contract Question is Ownable, IQuestion {
 
 	/// @inheritdoc IQuestion
 	function votingPower(address user) public view returns (uint256) {
-		return space.defaultPoints().balanceAtTimestamp(user, deadline);
+		return points.balanceAtTimestamp(user, deadline);
 	}
 
 	/// @dev Creates an array of OptionView structs for a given user

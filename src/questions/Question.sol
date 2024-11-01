@@ -234,11 +234,11 @@ abstract contract Question is Ownable, IQuestion {
 
 	/// @inheritdoc IQuestionView
 	function getQuestionView(address user) external view returns (QuestionView memory) {
-		return QuestionView(_questionData(), _questionUser(user), _optionsViews(user));
+		return QuestionView(_questionData(), _questionUser(user), _optionsViews(user), points.getPointsView(user));
 	}
 
 	/// @inheritdoc IQuestionView
 	function getQuestionPreview(address user) external view returns (QuestionPreview memory) {
-		return QuestionPreview(_questionData(), _questionUser(user));
+		return QuestionPreview(_questionData(), _questionUser(user), points.getPointsView(user));
 	}
 }

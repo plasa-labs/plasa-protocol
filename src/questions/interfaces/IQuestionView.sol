@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import { IPointsView } from "../../points/interfaces/IPointsView.sol";
+
 /// @title Question View Interface
 /// @notice Interface for retrieving question and option data for users
 /// @dev This interface defines structures and functions for viewing question details
@@ -60,6 +62,7 @@ interface IQuestionView {
 	struct QuestionPreview {
 		QuestionData data;
 		QuestionUser user;
+		IPointsView.PointsView points;
 	}
 
 	/// @notice Struct containing comprehensive question view data
@@ -68,6 +71,7 @@ interface IQuestionView {
 		QuestionData data;
 		QuestionUser user;
 		OptionView[] options;
+		IPointsView.PointsView points;
 	}
 
 	/// @notice Get a comprehensive view of the question for a specific user

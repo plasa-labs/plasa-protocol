@@ -155,10 +155,16 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 			}
 		}
 
-		// Validate indices
-		if (end > totalHolders) {
-			end = totalHolders;
+		// If no holders, return empty arrays
+		if (totalHolders == 0) {
+			return (new address[](0), new uint256[](0));
 		}
+
+		// Validate start index
+		if (start >= totalHolders) revert IndexOutOfBounds();
+
+		// Adjust end if it exceeds total holders
+		end = Math.min(end, totalHolders);
 		uint256 length = end - start;
 
 		// Create return arrays
@@ -178,20 +184,23 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 			}
 		}
 
-		// Sort using insertion sort (efficient for smaller arrays)
-		for (uint256 i = 1; i < totalHolders; ) {
-			uint256 j = i;
-			while (j > 0 && sortedBalances[j - 1] < sortedBalances[j]) {
-				// Swap balances
-				(sortedBalances[j], sortedBalances[j - 1]) = (sortedBalances[j - 1], sortedBalances[j]);
-				// Swap addresses
-				(sortedAddresses[j], sortedAddresses[j - 1]) = (sortedAddresses[j - 1], sortedAddresses[j]);
-				unchecked {
-					--j;
+		// Replace insertion sort with optimized quicksort for larger datasets
+		if (totalHolders > 10) {
+			_quickSort(sortedAddresses, sortedBalances, 0, int256(totalHolders - 1));
+		} else {
+			// Keep insertion sort for small arrays
+			for (uint256 i = 1; i < totalHolders; ) {
+				uint256 j = i;
+				while (j > 0 && sortedBalances[j - 1] < sortedBalances[j]) {
+					(sortedBalances[j], sortedBalances[j - 1]) = (sortedBalances[j - 1], sortedBalances[j]);
+					(sortedAddresses[j], sortedAddresses[j - 1]) = (sortedAddresses[j - 1], sortedAddresses[j]);
+					unchecked {
+						--j;
+					}
 				}
-			}
-			unchecked {
-				++i;
+				unchecked {
+					++i;
+				}
 			}
 		}
 
@@ -217,12 +226,39 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	}
 
 	/// @dev Helper function to get total unique holders across all stamps
+	/// @return maxHolders A conservative estimate of maximum possible unique holders
 	function _getTotalUniqueHolders() private view returns (uint256 maxHolders) {
+		// Find the stamp with maximum supply as a better estimate
 		for (uint256 i; i < _stampCount; ) {
-			maxHolders += _stamps[i].stamp.totalSupply();
+			uint256 supply = _stamps[i].stamp.totalSupply();
+			maxHolders = Math.max(maxHolders, supply);
 			unchecked {
 				++i;
 			}
 		}
+	}
+
+	/// @dev Quicksort implementation for more efficient sorting of larger arrays
+	function _quickSort(address[] memory addresses, uint256[] memory balances, int256 left, int256 right) private pure {
+		if (left >= right) return;
+
+		int256 i = left;
+		int256 j = right;
+		uint256 pivot = balances[uint256(left + (right - left) / 2)];
+
+		while (i <= j) {
+			while (balances[uint256(i)] > pivot) i++;
+			while (balances[uint256(j)] < pivot) j--;
+
+			if (i <= j) {
+				(balances[uint256(i)], balances[uint256(j)]) = (balances[uint256(j)], balances[uint256(i)]);
+				(addresses[uint256(i)], addresses[uint256(j)]) = (addresses[uint256(j)], addresses[uint256(i)]);
+				i++;
+				j--;
+			}
+		}
+
+		if (left < j) _quickSort(addresses, balances, left, j);
+		if (i < right) _quickSort(addresses, balances, i, right);
 	}
 }

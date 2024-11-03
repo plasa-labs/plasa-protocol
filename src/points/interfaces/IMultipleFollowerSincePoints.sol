@@ -49,4 +49,9 @@ interface IMultipleFollowerSincePoints is IPoints, IPointsStampView {
 	function getMultipleFollowerSincePointsView(
 		address user
 	) external view returns (MultipleFollowerSincePointsView memory);
+
+	/// @notice Gets the total number of unique holders across all stamps
+	/// @dev This is a helper function that provides an upper bound of unique holders
+	/// @return maxHolders The maximum number of unique holders across all stamps
+	function getTotalUniqueHolders() external view returns (uint256 maxHolders);
 }

@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import { ISpaceAccessControl } from "./ISpaceAccessControl.sol";
 import { ISpaceView } from "./ISpaceView.sol";
-import { IPoints } from "../../points/interfaces/IPoints.sol";
+import { IMultipleFollowerSincePoints } from "../../points/interfaces/IMultipleFollowerSincePoints.sol";
 import { IQuestionView } from "../../questions/interfaces/IQuestionView.sol";
 import { IQuestion } from "../../questions/interfaces/IQuestion.sol";
 
@@ -91,6 +91,6 @@ interface ISpace is ISpaceAccessControl, ISpaceView {
 	function getQuestionCount() external view returns (uint256);
 
 	/// @notice Returns the default points contract associated with this space
-	/// @return The IPoints interface of the associated default points contract
-	function defaultPoints() external view returns (IPoints);
+	/// @return The IMultipleFollowerSincePoints interface of the associated default points contract
+	function defaultPoints() external view returns (IMultipleFollowerSincePoints);
 }

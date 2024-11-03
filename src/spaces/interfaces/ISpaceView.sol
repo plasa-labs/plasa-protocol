@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { IPointsView } from "../../points/interfaces/IPointsView.sol";
+import { IMultipleFollowerSincePoints } from "../../points/interfaces/IMultipleFollowerSincePoints.sol";
 import { IQuestionView } from "../../questions/interfaces/IQuestionView.sol";
 
 /// @title Interface for viewing Space data and user permissions
@@ -59,7 +59,7 @@ interface ISpaceView {
 	struct SpaceView {
 		SpaceData data;
 		SpaceUser user;
-		IPointsView.PointsView points;
+		IMultipleFollowerSincePoints.MultipleFollowerSincePointsView points;
 		IQuestionView.QuestionPreview[] questions;
 	}
 

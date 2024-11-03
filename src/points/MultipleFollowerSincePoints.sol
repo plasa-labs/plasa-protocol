@@ -56,13 +56,14 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	function getTopHolders(uint256 start, uint256 end) public view override(IPoints, Points) returns (Holder[] memory) {
 		if (start >= end) revert IndexOutOfBounds();
 
-		uint256 maxSize = _getTotalUniqueHolders();
+		uint256 maxSize = getTotalUniqueHolders();
 		if (maxSize == 0) return new Holder[](0);
 
 		Holder[] memory holders = new Holder[](maxSize);
 		uint256 totalHolders = _collectHolders(holders);
 
 		if (start >= totalHolders) return new Holder[](0);
+		end = Math.min(end, totalHolders);
 		return _paginateAndSortHolders(holders, totalHolders, start, end);
 	}
 
@@ -206,8 +207,8 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		return _getPointsStampViews(user);
 	}
 
-	/// @dev Helper function to get total unique holders across all stamps
-	function _getTotalUniqueHolders() private view returns (uint256 maxHolders) {
+	/// @inheritdoc IMultipleFollowerSincePoints
+	function getTotalUniqueHolders() public view returns (uint256 maxHolders) {
 		// Sum up all stamp supplies for a conservative upper bound
 		for (uint256 i; i < _stampCount; ) {
 			unchecked {

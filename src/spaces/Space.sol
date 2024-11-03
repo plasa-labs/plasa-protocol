@@ -5,13 +5,13 @@ import { ISpace } from "./interfaces/ISpace.sol";
 import { ISpaceView } from "./interfaces/ISpaceView.sol";
 import { IQuestion, IQuestionView } from "../questions/interfaces/IQuestion.sol";
 import { SpaceAccessControl } from "./SpaceAccessControl.sol";
-import { IPoints } from "../points/interfaces/IPoints.sol";
+import { IMultipleFollowerSincePoints } from "../points/interfaces/IMultipleFollowerSincePoints.sol";
 
 /// @title Space - A contract for managing community spaces in Plasa
 /// @dev Implements ISpace interface and inherits from SpaceAccessControl for access control
 /// @custom:security-contact security@plasa.io
 contract Space is ISpace, SpaceAccessControl {
-	IPoints public override defaultPoints;
+	IMultipleFollowerSincePoints public override defaultPoints;
 	IQuestion[] private questions;
 
 	string public override spaceName;
@@ -38,7 +38,7 @@ contract Space is ISpace, SpaceAccessControl {
 		spaceName = _spaceName;
 		spaceDescription = _spaceDescription;
 		spaceImageUrl = _spaceImageUrl;
-		defaultPoints = IPoints(_defaultPoints);
+		defaultPoints = IMultipleFollowerSincePoints(_defaultPoints);
 		minPointsToAddOpenQuestionOption = _minPointsToAddOpenQuestionOption;
 	}
 
@@ -47,7 +47,7 @@ contract Space is ISpace, SpaceAccessControl {
 		address newDefaultPoints
 	) external override onlyAllowed(PermissionName.UpdateSpacePoints) {
 		if (newDefaultPoints == address(0)) revert ZeroAddressNotAllowed();
-		defaultPoints = IPoints(newDefaultPoints);
+		defaultPoints = IMultipleFollowerSincePoints(newDefaultPoints);
 		emit DefaultPointsUpdated(newDefaultPoints);
 	}
 
@@ -135,7 +135,7 @@ contract Space is ISpace, SpaceAccessControl {
 			SpaceView({
 				data: preview.data,
 				user: preview.user,
-				points: defaultPoints.getPointsView(user),
+				points: defaultPoints.getMultipleFollowerSincePointsView(user),
 				questions: _questionsPreview(user)
 			});
 	}

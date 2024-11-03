@@ -27,7 +27,7 @@ interface IMultipleFollowerSincePoints is IPoints, IPointsStampView {
 	/// @notice Struct combining PointsView and PointsStampView for a comprehensive view
 	/// @dev Provides a complete snapshot of the Points system and a user's stamps
 	struct MultipleFollowerSincePointsView {
-		PointsView pointsView; /// @dev General data about the Points system
+		PointsView points; /// @dev General data about the Points system
 		PointsStampView[] stamps; /// @dev Array of PointsStampView structs for each registered stamp
 	}
 

@@ -49,7 +49,7 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	function getMultipleFollowerSincePointsView(
 		address user
 	) external view returns (MultipleFollowerSincePointsView memory) {
-		return MultipleFollowerSincePointsView({ pointsView: getPointsView(user), stamps: _getPointsStampViews(user) });
+		return MultipleFollowerSincePointsView({ points: getPointsView(user), stamps: _getPointsStampViews(user) });
 	}
 
 	/// @inheritdoc IPoints

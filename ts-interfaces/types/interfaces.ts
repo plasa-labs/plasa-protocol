@@ -15,8 +15,9 @@ interface PlasaView {
 }
 
 // Points Types
-interface Holder {
+interface HolderData {
 	user: string  // address
+	name: string
 	balance: bigint
 }
 
@@ -25,7 +26,7 @@ interface PointsData {
 	name: string
 	symbol: string
 	totalSupply: bigint
-	top10Holders: Holder[]
+	top10Holders: HolderData[]
 }
 
 interface PointsUser {

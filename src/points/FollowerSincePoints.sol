@@ -17,7 +17,13 @@ contract FollowerSincePoints is IFollowerSincePoints, Points {
 	/// @param _followerStamp Address of the IFollowerSinceStamp contract
 	/// @param _name Name of the token
 	/// @param _symbol Symbol of the token
-	constructor(address _followerStamp, string memory _name, string memory _symbol) Points(_name, _symbol, 18) {
+	/// @param _plasaContract Address of the Plasa contract
+	constructor(
+		address _followerStamp,
+		string memory _name,
+		string memory _symbol,
+		address _plasaContract
+	) Points(_name, _symbol, 18, _plasaContract) {
 		followerStamp = IFollowerSinceStamp(_followerStamp);
 	}
 
@@ -93,7 +99,7 @@ contract FollowerSincePoints is IFollowerSincePoints, Points {
 			uint256 balance = _balanceAtTimestamp(owner, currentTimestamp);
 
 			if (balance > 0) {
-				holders[actualHolderCount] = Holder({ user: owner, balance: balance });
+				holders[actualHolderCount] = Holder({ user: owner, name: _getUsername(owner), balance: balance });
 				unchecked {
 					++actualHolderCount;
 				}

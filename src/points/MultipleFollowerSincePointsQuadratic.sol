@@ -12,8 +12,9 @@ contract MultipleFollowerSincePointsQuadratic is MultipleFollowerSincePoints {
 		address[] memory _stampAddresses,
 		uint256[] memory _multipliers,
 		string memory _name,
-		string memory _symbol
-	) MultipleFollowerSincePoints(_stampAddresses, _multipliers, _name, _symbol) {}
+		string memory _symbol,
+		address _plasaContract
+	) MultipleFollowerSincePoints(_stampAddresses, _multipliers, _name, _symbol, _plasaContract) {}
 
 	/// @notice Calculates points based on the duration of following using a square root formula
 	/// @dev Uses a square root calculation for non-linear growth curve:

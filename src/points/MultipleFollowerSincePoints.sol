@@ -23,8 +23,9 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		address[] memory _stampAddresses,
 		uint256[] memory _multipliers,
 		string memory _name,
-		string memory _symbol
-	) Points(_name, _symbol, 18) {
+		string memory _symbol,
+		address _plasaContract
+	) Points(_name, _symbol, 18, _plasaContract) {
 		if (_stampAddresses.length != _multipliers.length) revert ArrayLengthMismatch();
 		for (uint256 i = 0; i < _stampAddresses.length; ++i) {
 			_stamps.push(StampInfo(IFollowerSinceStamp(_stampAddresses[i]), _multipliers[i]));
@@ -255,7 +256,11 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 
 				// Add new holder with their balance
 				if (!found) {
-					holders[totalHolders] = Holder({ user: owner, balance: balanceOf(owner) });
+					holders[totalHolders] = Holder({
+						user: owner,
+						name: _getUsername(owner),
+						balance: balanceOf(owner)
+					});
 					unchecked {
 						++totalHolders;
 					}

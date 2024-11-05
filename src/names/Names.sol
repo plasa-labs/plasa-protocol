@@ -48,7 +48,7 @@ contract Names is ERC721Enumerable, INames, Ownable {
 
 	/// @notice Initializes the Names contract with basic metadata
 	/// @dev Sets initial URIs and configures base contract parameters
-	constructor() Ownable(msg.sender) ERC721("Plasa Names", "NAME") ERC721Enumerable() {
+	constructor(address _owner) Ownable(_owner) ERC721("Plasa Names", "NAME") ERC721Enumerable() {
 		contractURI = "some-contract-uri";
 		_tokenURI = "some-token-uri";
 	}

@@ -7,6 +7,8 @@ import { DeploySingleArgs } from "./DeploySingleArgs.sol";
 import { FollowerSinceStamp } from "../../src/stamps/FollowerSinceStamp.sol";
 import { MultipleFollowerSincePoints } from "../../src/points/MultipleFollowerSincePoints.sol";
 import { FixedQuestion } from "../../src/questions/FixedQuestion.sol";
+import { Names } from "../../src/names/Names.sol";
+import { Plasa } from "../../src/plasa/Plasa.sol";
 
 contract DeploySingle is Script {
 	function deployQuestion(
@@ -40,6 +42,12 @@ contract DeploySingle is Script {
 
 		vm.startBroadcast(deployerPrivateKey);
 
+		// Deploy Names
+		Names names = new Names(superAdmin);
+
+		// Deploy Plasa
+		Plasa plasa = new Plasa(superAdmin, address(names));
+
 		// Deploy Stamps
 		FollowerSinceStamp[] memory stamps = new FollowerSinceStamp[](args.space.stampPlatforms.length);
 		address[] memory stampAddresses = new address[](args.space.stampPlatforms.length);
@@ -58,7 +66,8 @@ contract DeploySingle is Script {
 			stampAddresses,
 			args.space.stampMultipliers,
 			args.space.pointsName,
-			args.space.pointsSymbol
+			args.space.pointsSymbol,
+			address(plasa)
 		);
 
 		// Deploy Space

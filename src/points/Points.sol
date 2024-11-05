@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IPoints, IERC20Metadata, IERC20 } from "./interfaces/IPoints.sol";
 import { IPointsView } from "./interfaces/IPointsView.sol";
+import { PlasaContext } from "../plasa/PlasaContext.sol";
 
 /// @title Points - A non-transferable ERC20-like token contract
 /// @notice This contract implements a non-transferable token system
 /// @dev This is an abstract contract that needs to be inherited and implemented
-abstract contract Points is IPoints {
+abstract contract Points is IPoints, PlasaContext {
 	string private _name;
 	string private _symbol;
 	uint8 private _decimals;
@@ -17,7 +18,12 @@ abstract contract Points is IPoints {
 	/// @param tokenName The name of the token
 	/// @param tokenSymbol The symbol of the token
 	/// @param tokenDecimals The number of decimals for the token
-	constructor(string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals) {
+	constructor(
+		string memory tokenName,
+		string memory tokenSymbol,
+		uint8 tokenDecimals,
+		address _plasaContract
+	) PlasaContext(_plasaContract) {
 		_name = tokenName;
 		_symbol = tokenSymbol;
 		_decimals = tokenDecimals;

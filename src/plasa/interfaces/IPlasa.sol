@@ -6,6 +6,14 @@ import { INames } from "../../names/INames.sol";
 /// @title IPlasa Interface
 /// @dev This interface defines the functions for user registration and username retrieval in the Plasa system.
 interface IPlasa {
+	/// @notice Struct to hold username data.
+	/// @param user The address of the user.
+	/// @param name The username of the user.
+	struct UsernameData {
+		address user;
+		string name;
+	}
+
 	/// @notice Checks if a user is registered in the Plasa system.
 	/// @param user The address of the user to check.
 	/// @return bool Returns true if the user is registered, false otherwise.
@@ -23,4 +31,14 @@ interface IPlasa {
 	/// @notice The names contract interface.
 	/// @return INames Returns the names contract.
 	function names() external view returns (INames);
+
+	/// @notice Retrieves the username data associated with an array of user addresses.
+	/// @param user The address of the user whose username is to be retrieved.
+	/// @return UsernameData The username data of the user.
+	function getUsernameData(address user) external view returns (UsernameData memory);
+
+	/// @notice Retrieves the usernames associated with an array of user addresses.
+	/// @param users The addresses of the users whose usernames are to be retrieved.
+	/// @return UsernameData[] memory An array of UsernameData structures corresponding to the input addresses.
+	function getUsernamesData(address[] memory users) external view returns (UsernameData[] memory);
 }

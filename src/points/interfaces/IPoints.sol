@@ -8,8 +8,17 @@ import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/I
 /// @title IPoints - Interface for a non-transferable ERC20-like token
 /// @notice This interface defines the functions for a non-transferable token system
 interface IPoints is IERC20Metadata, IPointsView {
+	/// @notice Struct representing a holder with their address and balance
+	struct Holder {
+		address user;
+		uint256 balance;
+	}
+
 	/// @notice Error thrown when attempting to transfer tokens
 	error NonTransferable();
+
+	/// @notice Error thrown when attempting to access an out of bounds index
+	error IndexOutOfBounds();
 
 	/// @notice Returns the balance of a user at a specific timestamp
 	/// @param user The address of the user
@@ -26,5 +35,5 @@ interface IPoints is IERC20Metadata, IPointsView {
 	/// @param start The starting index (inclusive)
 	/// @param end The ending index (exclusive)
 	/// @return Array of holders sorted by point balance
-	function getTopHolders(uint256 start, uint256 end) external view returns (Holder[] memory);
+	function getTopHolders(uint256 start, uint256 end) external view returns (HolderData[] memory);
 }

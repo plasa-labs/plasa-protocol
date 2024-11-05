@@ -41,31 +41,10 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 	}
 
 	/// @inheritdoc IMultipleFollowerSincePoints
-	function stampByIndex(uint256 index) external view returns (StampInfo memory) {
-		if (index >= _stamps.length) revert IndexOutOfBounds();
-		return _stamps[index];
-	}
-
-	/// @inheritdoc IMultipleFollowerSincePoints
 	function getMultipleFollowerSincePointsView(
 		address user
 	) external view returns (MultipleFollowerSincePointsView memory) {
 		return MultipleFollowerSincePointsView({ points: getPointsView(user), stamps: _getPointsStampViews(user) });
-	}
-
-	/// @inheritdoc IPoints
-	function getTopHolders(uint256 start, uint256 end) public view override(IPoints, Points) returns (Holder[] memory) {
-		if (start >= end) revert IndexOutOfBounds();
-
-		uint256 maxSize = getTotalUniqueHolders();
-		if (maxSize == 0) return new Holder[](0);
-
-		Holder[] memory holders = new Holder[](maxSize);
-		uint256 totalHolders = _collectHolders(holders);
-
-		if (start >= totalHolders) return new Holder[](0);
-		end = Math.min(end, totalHolders);
-		return _paginateAndSortHolders(holders, totalHolders, start, end);
 	}
 
 	// Internal Functions
@@ -208,8 +187,8 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		return _getPointsStampViews(user);
 	}
 
-	/// @inheritdoc IMultipleFollowerSincePoints
-	function getTotalUniqueHolders() public view returns (uint256 maxHolders) {
+	/// @inheritdoc Points
+	function _getTotalUniqueHolders() internal view override returns (uint256 maxHolders) {
 		// Sum up all stamp supplies for a conservative upper bound
 		for (uint256 i; i < _stampCount; ) {
 			unchecked {
@@ -219,34 +198,23 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 		}
 	}
 
-	/// @dev Insertion sort implementation optimized for small arrays
-	function _insertionSort(Holder[] memory arr, uint256 length) private pure {
-		for (uint256 i = 1; i < length; ) {
-			uint256 j = i;
-			while (j > 0 && arr[j - 1].balance < arr[j].balance) {
-				(arr[j], arr[j - 1]) = (arr[j - 1], arr[j]);
-				unchecked {
-					--j;
-				}
-			}
-			unchecked {
-				++i;
-			}
-		}
-	}
+	/// @inheritdoc Points
+	function _collectHolders(Holder[] memory holders) internal view override returns (uint256 totalHolders) {
+		// Use a fixed-size mapping in memory for deduplication
+		bytes32[] memory seenAddresses = new bytes32[](_getTotalUniqueHolders());
+		uint256 seenCount;
 
-	/// @dev Helper function to collect holders and their balances
-	function _collectHolders(Holder[] memory holders) private view returns (uint256 totalHolders) {
 		for (uint256 i; i < _stampCount; ) {
 			uint256 stampSupply = _stamps[i].stamp.totalSupply();
 			for (uint256 j = 1; j <= stampSupply; ) {
 				address owner = _stamps[i].stamp.ownerOf(j);
+				bytes32 ownerHash = keccak256(abi.encodePacked(owner));
 
-				// Check if holder already exists
-				bool found = false;
-				for (uint256 k; k < totalHolders; ) {
-					if (holders[k].user == owner) {
-						found = true;
+				// Check if holder already processed
+				bool isDuplicate;
+				for (uint256 k; k < seenCount; ) {
+					if (seenAddresses[k] == ownerHash) {
+						isDuplicate = true;
 						break;
 					}
 					unchecked {
@@ -254,13 +222,12 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 					}
 				}
 
-				// Add new holder with their balance
-				if (!found) {
-					holders[totalHolders] = Holder({
-						user: owner,
-						name: _getUsername(owner),
-						balance: balanceOf(owner)
-					});
+				if (!isDuplicate) {
+					seenAddresses[seenCount] = ownerHash;
+					unchecked {
+						++seenCount;
+					}
+					holders[totalHolders] = Holder({ user: owner, balance: balanceOf(owner) });
 					unchecked {
 						++totalHolders;
 					}
@@ -273,31 +240,5 @@ contract MultipleFollowerSincePoints is Points, IMultipleFollowerSincePoints {
 				++i;
 			}
 		}
-	}
-
-	/// @dev Helper function to paginate and sort holders
-	function _paginateAndSortHolders(
-		Holder[] memory holders,
-		uint256 totalHolders,
-		uint256 start,
-		uint256 end
-	) private pure returns (Holder[] memory) {
-		// Validate pagination
-		if (start >= totalHolders) return new Holder[](0);
-		end = Math.min(end, totalHolders);
-		uint256 length = end - start;
-
-		// Sort only the actual holders (not the entire array)
-		_insertionSort(holders, totalHolders);
-
-		// Return paginated result
-		Holder[] memory result = new Holder[](length);
-		for (uint256 i; i < length; ) {
-			result[i] = holders[start + i];
-			unchecked {
-				++i;
-			}
-		}
-		return result;
 	}
 }

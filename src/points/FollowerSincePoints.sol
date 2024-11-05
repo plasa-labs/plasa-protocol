@@ -80,73 +80,19 @@ contract FollowerSincePoints is IFollowerSincePoints, Points {
 		return (Math.sqrt(durationInSeconds) * 1e18) / Math.sqrt(86400);
 	}
 
-	/// @inheritdoc IPoints
-	function getTopHolders(uint256 start, uint256 end) public view override(IPoints, Points) returns (Holder[] memory) {
-		// Get total number of stamps
-		uint256 totalStamps = followerStamp.totalSupply();
-		if (totalStamps == 0 || start >= end) {
-			return new Holder[](0);
-		}
+	/// @inheritdoc Points
+	function _getTotalUniqueHolders() internal view override returns (uint256) {
+		return followerStamp.totalSupply();
+	}
 
-		// Create temporary array to store all holders with non-zero balances
-		Holder[] memory holders = new Holder[](totalStamps);
-		uint256 actualHolderCount = 0;
-		uint256 currentTimestamp = block.timestamp;
-
-		// Collect all holders with non-zero balances
-		for (uint256 i = 1; i <= totalStamps; ) {
+	/// @inheritdoc Points
+	function _collectHolders(Holder[] memory holders) internal view override returns (uint256 totalHolders) {
+		for (uint256 i = 1; i <= followerStamp.totalSupply(); ) {
 			address owner = followerStamp.ownerOf(i);
-			uint256 balance = _balanceAtTimestamp(owner, currentTimestamp);
-
-			if (balance > 0) {
-				holders[actualHolderCount] = Holder({ user: owner, name: _getUsername(owner), balance: balance });
-				unchecked {
-					++actualHolderCount;
-				}
-			}
+			holders[totalHolders] = Holder({ user: owner, balance: balanceOf(owner) });
 			unchecked {
-				++i;
+				++totalHolders;
 			}
 		}
-
-		// If no holders with balance, return empty array
-		if (actualHolderCount == 0) {
-			return new Holder[](0);
-		}
-
-		// Sort holders by balance (bubble sort for simplicity)
-		// Can be optimized with quicksort for larger datasets
-		for (uint256 i = 0; i < actualHolderCount - 1; ) {
-			for (uint256 j = 0; j < actualHolderCount - i - 1; ) {
-				if (holders[j].balance < holders[j + 1].balance) {
-					Holder memory temp = holders[j];
-					holders[j] = holders[j + 1];
-					holders[j + 1] = temp;
-				}
-				unchecked {
-					++j;
-				}
-			}
-			unchecked {
-				++i;
-			}
-		}
-
-		// Calculate the actual slice size
-		uint256 sliceSize = end > actualHolderCount ? actualHolderCount - start : end - start;
-		if (start >= actualHolderCount) {
-			return new Holder[](0);
-		}
-
-		// Create and fill result array with the requested slice
-		Holder[] memory result = new Holder[](sliceSize);
-		for (uint256 i = 0; i < sliceSize; ) {
-			result[i] = holders[start + i];
-			unchecked {
-				++i;
-			}
-		}
-
-		return result;
 	}
 }

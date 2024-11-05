@@ -7,6 +7,7 @@ pragma solidity ^0.8.20;
 interface IPointsView {
 	struct Holder {
 		address user;
+		string name;
 		uint256 balance;
 	}
 

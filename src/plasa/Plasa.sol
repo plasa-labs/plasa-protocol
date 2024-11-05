@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 // Importing necessary contracts and interfaces
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { INames } from "../names/INames.sol";
-import { IPlasa } from "./interfaces/IPlasa.sol";
+import { IPlasa, IPlasaView } from "./interfaces/IPlasa.sol";
 
 /**
  * @title Plasa Contract
@@ -83,5 +83,14 @@ contract Plasa is Ownable, IPlasa {
 			usernameData[i] = getUsernameData(users[i]);
 		}
 		return usernameData;
+	}
+
+	/// @inheritdoc IPlasaView
+	function getPlasaView() external view returns (PlasaView memory) {
+		return
+			PlasaView({
+				data: PlasaData({ contractAddress: address(this), namesContract: address(names) }),
+				user: PlasaUser({ isRegistered: isRegistered(msg.sender), username: getUsername(msg.sender) })
+			});
 	}
 }

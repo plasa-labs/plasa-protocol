@@ -2,10 +2,11 @@
 pragma solidity ^0.8.20;
 
 import { INames } from "../../names/INames.sol";
+import { IPlasaView } from "./IPlasaView.sol";
 
 /// @title IPlasa Interface
 /// @dev This interface defines the functions for user registration and username retrieval in the Plasa system.
-interface IPlasa {
+interface IPlasa is IPlasaView {
 	/// @notice Struct to hold username data.
 	/// @param user The address of the user.
 	/// @param name The username of the user.

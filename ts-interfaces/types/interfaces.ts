@@ -1,3 +1,19 @@
+// Plasa Types
+interface PlasaData {
+	contractAddress: string  // address
+	namesContract: string   // address
+}
+
+interface PlasaUser {
+	isRegistered: boolean
+	username: string
+}
+
+interface PlasaView {
+	data: PlasaData
+	user: PlasaUser
+}
+
 // Points Types
 interface Holder {
 	user: string  // address

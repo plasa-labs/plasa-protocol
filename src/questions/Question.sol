@@ -93,8 +93,7 @@ abstract contract Question is IQuestion, PlasaContext {
 		option.voteCount++;
 		option.pointsAtDeadline += votingPower(msg.sender);
 
-		uint256 timestamp = (block.timestamp / 1 days) * 1 days;
-		emit Voted(msg.sender, _getUsername(msg.sender), optionId, votingPower(msg.sender), timestamp);
+		emit Voted(msg.sender, _getUsername(msg.sender), optionId, votingPower(msg.sender), block.timestamp);
 	}
 
 	/// @inheritdoc IQuestion

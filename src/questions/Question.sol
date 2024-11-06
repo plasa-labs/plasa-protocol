@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IQuestion } from "./interfaces/IQuestion.sol";
 import { ISpace } from "../spaces/interfaces/ISpace.sol";
 import { IQuestionView } from "./interfaces/IQuestionView.sol";
 import { IPoints } from "../points/interfaces/IPoints.sol";
 import { ISpaceAccessControl } from "../spaces/interfaces/ISpaceAccessControl.sol";
+import { PlasaContext } from "../plasa/PlasaContext.sol";
 
 /// @title Abstract Question Contract for Decentralized Voting System
-/// @dev Implements base functionality for a voting question, inheriting from Ownable and IQuestion
+/// @dev Implements base functionality for a voting question, inheriting from IQuestion and PlasaContext
 /// @notice This contract allows users to vote on options and manages the voting process
-abstract contract Question is Ownable, IQuestion {
+abstract contract Question is IQuestion, PlasaContext {
 	// State variables
 	/// @notice The timestamp when the question was created
 	uint256 public immutable override kickoff;
@@ -62,8 +62,9 @@ abstract contract Question is Ownable, IQuestion {
 		string memory _title,
 		string memory _description,
 		uint256 _deadline,
-		string[] memory _tags
-	) Ownable(msg.sender) {
+		string[] memory _tags,
+		address _plasa
+	) PlasaContext(_plasa) {
 		creator = msg.sender;
 		space = ISpace(_space);
 		kickoff = block.timestamp;
@@ -93,7 +94,7 @@ abstract contract Question is Ownable, IQuestion {
 		option.pointsAtDeadline += votingPower(msg.sender);
 
 		uint256 timestamp = (block.timestamp / 1 days) * 1 days;
-		emit Voted(msg.sender, optionId, timestamp);
+		emit Voted(msg.sender, _getUsername(msg.sender), optionId, votingPower(msg.sender), timestamp);
 	}
 
 	/// @inheritdoc IQuestion

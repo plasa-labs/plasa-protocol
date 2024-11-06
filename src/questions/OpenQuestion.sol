@@ -24,8 +24,9 @@ contract OpenQuestion is Question, IOpenQuestion {
 		string memory _title,
 		string memory _description,
 		string[] memory _tags,
-		uint256 _deadline
-	) Question(_space, _points, _title, _description, _deadline, _tags) {
+		uint256 _deadline,
+		address _plasa
+	) Question(_space, _points, _title, _description, _deadline, _tags, _plasa) {
 		questionType = QuestionType.Open;
 
 		// Check if creator has permission to create open questions

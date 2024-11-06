@@ -28,8 +28,9 @@ contract FixedQuestion is Question, IFixedQuestion {
 		string[] memory _tags,
 		uint256 _deadline,
 		string[] memory _initialOptionTitles,
-		string[] memory _initialOptionDescriptions
-	) Question(_space, _points, _title, _description, _deadline, _tags) {
+		string[] memory _initialOptionDescriptions,
+		address _plasa
+	) Question(_space, _points, _title, _description, _deadline, _tags, _plasa) {
 		// Check if creator has permission to create fixed questions
 		if (!space.hasPermission(ISpaceAccessControl.PermissionName.CreateFixedQuestion, msg.sender)) {
 			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.CreateFixedQuestion);

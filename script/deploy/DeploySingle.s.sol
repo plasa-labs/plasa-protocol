@@ -14,7 +14,8 @@ contract DeploySingle is Script {
 	function deployQuestion(
 		address spaceAddress,
 		address pointsAddress,
-		DeploySingleArgs.QuestionArgs memory args
+		DeploySingleArgs.QuestionArgs memory args,
+		address plasaAddress
 	) private returns (FixedQuestion) {
 		return
 			new FixedQuestion(
@@ -25,7 +26,8 @@ contract DeploySingle is Script {
 				args.tags,
 				args.deadline,
 				args.optionTitles,
-				args.optionDescriptions
+				args.optionDescriptions,
+				plasaAddress
 			);
 	}
 
@@ -86,8 +88,8 @@ contract DeploySingle is Script {
 		vm.startBroadcast(superAdminPrivateKey);
 
 		// Deploy Questions
-		FixedQuestion question1 = deployQuestion(address(space), address(0), args.question1);
-		FixedQuestion question2 = deployQuestion(address(space), address(0), args.question2);
+		FixedQuestion question1 = deployQuestion(address(space), address(0), args.question1, address(plasa));
+		FixedQuestion question2 = deployQuestion(address(space), address(0), args.question2, address(plasa));
 
 		// Add questions to space
 		space.addQuestion(address(question1));

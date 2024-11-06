@@ -29,9 +29,11 @@ interface IQuestion is IQuestionView {
 
 	/// @dev Emitted when a vote is cast
 	/// @param voter The address of the voter
+	/// @param name The username of the voter
 	/// @param optionId The ID of the option voted for
+	/// @param points The number of points the voter used to vote
 	/// @param timestamp The timestamp when the vote was cast
-	event Voted(address indexed voter, uint256 indexed optionId, uint256 timestamp);
+	event Voted(address voter, string name, uint256 indexed optionId, uint256 points, uint256 timestamp);
 
 	/// @dev Emitted when a new voting option is added
 	/// @param proposer The address of the account proposing the new option

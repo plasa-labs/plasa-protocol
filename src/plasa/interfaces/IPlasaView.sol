@@ -29,6 +29,7 @@ interface IPlasaView {
 	}
 
 	/// @notice Retrieves the Plasa view data.
+	/// @param user The address of the user whose Plasa view data is to be retrieved.
 	/// @return PlasaView The Plasa view data.
-	function getPlasaView() external view returns (PlasaView memory);
+	function getPlasaView(address user) external view returns (PlasaView memory);
 }

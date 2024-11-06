@@ -86,11 +86,11 @@ contract Plasa is Ownable, IPlasa {
 	}
 
 	/// @inheritdoc IPlasaView
-	function getPlasaView() external view returns (PlasaView memory) {
+	function getPlasaView(address user) external view returns (PlasaView memory) {
 		return
 			PlasaView({
 				data: PlasaData({ contractAddress: address(this), namesContract: address(names) }),
-				user: PlasaUser({ isRegistered: isRegistered(msg.sender), username: getUsername(msg.sender) })
+				user: PlasaUser({ isRegistered: isRegistered(user), username: getUsername(user) })
 			});
 	}
 }

@@ -90,12 +90,12 @@ interface IQuestion is IQuestionView {
 
 	/// @notice Retrieves all available voting options for the question
 	/// @return An array of OptionData structs representing all voting options
-	function getOptions() external view returns (OptionData[] memory);
+	function getOptions() external view returns (OptionStorage[] memory);
 
 	/// @notice Retrieves a specific voting option by its ID
 	/// @param optionId The ID of the option to retrieve
 	/// @return The OptionData struct for the specified option ID
-	function getOption(uint256 optionId) external view returns (OptionData memory);
+	function getOption(uint256 optionId) external view returns (OptionStorage memory);
 
 	// Public functions
 	/// @notice Checks if the voting period for this question is currently active

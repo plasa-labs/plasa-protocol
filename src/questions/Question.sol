@@ -25,7 +25,7 @@ abstract contract Question is IQuestion, PlasaContext {
 	uint256 public override deadline;
 
 	/// @notice An array of voting options
-	OptionData[] private _options;
+	OptionStorage[] private _options;
 
 	/// @notice The type of question (e.g., single choice, multiple choice)
 	QuestionType public questionType;
@@ -80,7 +80,7 @@ abstract contract Question is IQuestion, PlasaContext {
 		}
 
 		// Add an empty option at index 0
-		_options.push(OptionData("", "", address(0), 0, 0));
+		_options.push(OptionStorage("", "", address(0), 0, 0));
 	}
 
 	/// @inheritdoc IQuestion
@@ -89,7 +89,7 @@ abstract contract Question is IQuestion, PlasaContext {
 
 		_processVote(optionId);
 
-		OptionData storage option = _options[optionId];
+		OptionStorage storage option = _options[optionId];
 		option.voteCount++;
 		option.pointsAtDeadline += votingPower(msg.sender);
 
@@ -124,12 +124,12 @@ abstract contract Question is IQuestion, PlasaContext {
 	}
 
 	/// @inheritdoc IQuestion
-	function getOptions() external view returns (OptionData[] memory) {
+	function getOptions() external view returns (OptionStorage[] memory) {
 		return _options;
 	}
 
 	/// @inheritdoc IQuestion
-	function getOption(uint256 optionId) external view returns (OptionData memory) {
+	function getOption(uint256 optionId) external view returns (OptionStorage memory) {
 		if (optionId >= _options.length) revert InvalidOption();
 		return _options[optionId];
 	}
@@ -156,7 +156,7 @@ abstract contract Question is IQuestion, PlasaContext {
 	/// @return optionId The ID of the newly added option
 	function _addOption(string memory _title, string memory _description) internal returns (uint256 optionId) {
 		optionId = _options.length;
-		_options.push(OptionData(_title, _description, msg.sender, 0, 0));
+		_options.push(OptionStorage(_title, _description, msg.sender, 0, 0));
 		emit NewOption(msg.sender, optionId, _title);
 	}
 
@@ -202,7 +202,15 @@ abstract contract Question is IQuestion, PlasaContext {
 	function _optionsViews(address user) private view returns (OptionView[] memory) {
 		OptionView[] memory _views = new OptionView[](_options.length);
 		for (uint256 i = 1; i < _views.length; i++) {
-			_views[i] = OptionView(_options[i], OptionUser(hasVotedOption(user, i)));
+			OptionData memory option = OptionData(
+				_options[i].title,
+				_options[i].description,
+				_options[i].proposer,
+				_getUsername(_options[i].proposer),
+				_options[i].voteCount,
+				_options[i].pointsAtDeadline
+			);
+			_views[i] = OptionView(option, OptionUser(hasVotedOption(user, i)));
 		}
 		return _views;
 	}

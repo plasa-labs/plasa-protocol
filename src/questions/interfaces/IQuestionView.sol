@@ -38,10 +38,21 @@ interface IQuestionView {
 
 	/// @notice Struct containing option data
 	/// @dev This struct holds all the relevant information about an option
+	struct OptionStorage {
+		string title;
+		string description;
+		address proposer;
+		uint256 voteCount;
+		uint256 pointsAtDeadline;
+	}
+
+	/// @notice Struct containing option data
+	/// @dev This struct holds all the relevant information about an option
 	struct OptionData {
 		string title;
 		string description;
 		address proposer;
+		string proposerName;
 		uint256 voteCount;
 		uint256 pointsAtDeadline;
 	}

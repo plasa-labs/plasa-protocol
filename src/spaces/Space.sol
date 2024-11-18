@@ -9,7 +9,6 @@ import { IMultipleFollowerSincePoints } from "../points/interfaces/IMultipleFoll
 
 /// @title Space - A contract for managing community spaces in Plasa
 /// @dev Implements ISpace interface and inherits from SpaceAccessControl for access control
-/// @custom:security-contact security@plasa.io
 contract Space is ISpace, SpaceAccessControl {
 	IMultipleFollowerSincePoints public override defaultPoints;
 	IQuestion[] private questions;

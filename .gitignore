@@ -23,3 +23,4 @@ broadcast/
 
 DeployPoCArgs.sol
 DeploySingleArgs.sol
+AddOpenQuestionArgs.sol

@@ -49,6 +49,18 @@ abstract contract Question is IQuestion, PlasaContext {
 		_;
 	}
 
+	/// @dev Modifier to check if the option ID is valid
+	/// @param optionId The ID of the option to check
+	modifier validOption(uint256 optionId) {
+		if (optionId == 0 || optionId >= _options.length) revert InvalidOption();
+		_;
+	}
+
+	modifier onlyAllowed(ISpaceAccessControl.PermissionName permissionName) {
+		if (!space.hasPermission(permissionName, msg.sender)) revert NotAllowed(msg.sender, permissionName);
+		_;
+	}
+
 	/// @notice Constructor to initialize the question
 	/// @dev Sets up the initial state of the question
 	/// @param _space The address of the Space contract
@@ -84,9 +96,7 @@ abstract contract Question is IQuestion, PlasaContext {
 	}
 
 	/// @inheritdoc IQuestion
-	function vote(uint256 optionId) external whileActive {
-		if (optionId == 0 || optionId >= _options.length) revert InvalidOption();
-
+	function vote(uint256 optionId) external whileActive validOption(optionId) {
 		_processVote(optionId);
 
 		OptionStorage storage option = _options[optionId];
@@ -97,30 +107,36 @@ abstract contract Question is IQuestion, PlasaContext {
 	}
 
 	/// @inheritdoc IQuestion
-	function updateTitle(string memory _title) external {
-		if (!space.hasPermission(ISpaceAccessControl.PermissionName.UpdateQuestionInfo, msg.sender)) {
-			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.UpdateQuestionInfo);
-		}
+	function updateTitle(
+		string memory _title
+	) external onlyAllowed(ISpaceAccessControl.PermissionName.UpdateQuestionInfo) {
 		title = _title;
 		emit QuestionTitleUpdated(_title);
 	}
 
 	/// @inheritdoc IQuestion
-	function updateDescription(string memory _description) external {
-		if (!space.hasPermission(ISpaceAccessControl.PermissionName.UpdateQuestionInfo, msg.sender)) {
-			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.UpdateQuestionInfo);
-		}
+	function updateDescription(
+		string memory _description
+	) external onlyAllowed(ISpaceAccessControl.PermissionName.UpdateQuestionInfo) {
 		description = _description;
 		emit QuestionDescriptionUpdated(_description);
 	}
 
 	/// @inheritdoc IQuestion
-	function updateDeadline(uint256 _deadline) external {
-		if (!space.hasPermission(ISpaceAccessControl.PermissionName.UpdateQuestionDeadline, msg.sender)) {
-			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.UpdateQuestionDeadline);
-		}
+	function updateDeadline(
+		uint256 _deadline
+	) external onlyAllowed(ISpaceAccessControl.PermissionName.UpdateQuestionDeadline) {
 		deadline = _deadline;
 		emit QuestionDeadlineUpdated(_deadline);
+	}
+
+	/// @notice Updates the tags of the question
+	/// @param _tags The new array of tags
+	function updateTags(
+		string[] memory _tags
+	) external onlyAllowed(ISpaceAccessControl.PermissionName.UpdateQuestionInfo) {
+		tags = _tags;
+		emit QuestionTagsUpdated(_tags);
 	}
 
 	/// @inheritdoc IQuestion
@@ -129,19 +145,8 @@ abstract contract Question is IQuestion, PlasaContext {
 	}
 
 	/// @inheritdoc IQuestion
-	function getOption(uint256 optionId) external view returns (OptionStorage memory) {
-		if (optionId >= _options.length) revert InvalidOption();
+	function getOption(uint256 optionId) external view validOption(optionId) returns (OptionStorage memory) {
 		return _options[optionId];
-	}
-
-	/// @notice Updates the tags of the question
-	/// @param _tags The new array of tags
-	function updateTags(string[] memory _tags) external {
-		if (!space.hasPermission(ISpaceAccessControl.PermissionName.UpdateQuestionInfo, msg.sender)) {
-			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.UpdateQuestionInfo);
-		}
-		tags = _tags;
-		emit QuestionTagsUpdated(_tags);
 	}
 
 	// Internal functions
@@ -196,6 +201,11 @@ abstract contract Question is IQuestion, PlasaContext {
 		return points.balanceAtTimestamp(user, deadline);
 	}
 
+	/// @dev Checks if an option is vetoed
+	/// @param optionId The ID of the option to check
+	/// @return True if the option is vetoed, false otherwise
+	function _isVetoed(uint256 optionId) internal view virtual returns (bool);
+
 	/// @dev Creates an array of OptionView structs for a given user
 	/// @param user The address of the user to create views for
 	/// @return An array of OptionView structs
@@ -208,7 +218,8 @@ abstract contract Question is IQuestion, PlasaContext {
 				_options[i].proposer,
 				_getUsername(_options[i].proposer),
 				_options[i].voteCount,
-				_options[i].pointsAtDeadline
+				_options[i].pointsAtDeadline,
+				_isVetoed(i)
 			);
 			_views[i] = OptionView(option, OptionUser(hasVotedOption(user, i)));
 		}

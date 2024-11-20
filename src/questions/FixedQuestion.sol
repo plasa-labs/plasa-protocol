@@ -30,17 +30,13 @@ contract FixedQuestion is Question, IFixedQuestion {
 		string[] memory _initialOptionTitles,
 		string[] memory _initialOptionDescriptions,
 		address _plasa
-	) Question(_space, _points, _title, _description, _deadline, _tags, _plasa) {
-		// Check if creator has permission to create fixed questions
-		if (!space.hasPermission(ISpaceAccessControl.PermissionName.CreateFixedQuestion, msg.sender)) {
-			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.CreateFixedQuestion);
-		}
-
+	)
+		Question(_space, _points, _title, _description, _deadline, _tags, _plasa)
+		onlyAllowed(ISpaceAccessControl.PermissionName.CreateFixedQuestion)
+	{
 		questionType = QuestionType.Fixed;
 
-		if (_initialOptionTitles.length != _initialOptionDescriptions.length) {
-			revert MismatchedOptionArrays();
-		}
+		if (_initialOptionTitles.length != _initialOptionDescriptions.length) revert MismatchedOptionArrays();
 
 		// Add initial options
 		for (uint256 i = 0; i < _initialOptionTitles.length; i++) {
@@ -48,14 +44,18 @@ contract FixedQuestion is Question, IFixedQuestion {
 		}
 	}
 
+	/// @inheritdoc Question
+	function _isVetoed(uint256) internal pure override returns (bool) {
+		return false;
+	}
+
 	/// @notice Processes a user's vote
 	/// @dev Internal function to record a user's vote, ensuring they can only vote once
 	/// @param optionId The ID of the option the user is voting for
 	function _processVote(uint256 optionId) internal override {
 		// Check if the user has already voted
-		if (userVotes[msg.sender] != 0) {
-			revert UserAlreadyVoted();
-		}
+		if (userVotes[msg.sender] != 0) revert UserAlreadyVoted();
+
 		// Record the user's vote
 		userVotes[msg.sender] = optionId;
 	}

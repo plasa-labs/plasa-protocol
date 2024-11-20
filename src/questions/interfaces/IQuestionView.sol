@@ -55,6 +55,7 @@ interface IQuestionView {
 		string proposerName;
 		uint256 voteCount;
 		uint256 pointsAtDeadline;
+		bool isVetoed;
 	}
 
 	/// @notice Struct containing user-specific option data

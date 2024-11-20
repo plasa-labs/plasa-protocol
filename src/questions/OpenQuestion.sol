@@ -11,6 +11,9 @@ contract OpenQuestion is Question, IOpenQuestion {
 	// Mapping to store user votes for each option
 	mapping(address user => mapping(uint256 optionId => bool hasVoted)) private userVotes;
 
+	/// @notice Mapping to track if an option is vetoed
+	mapping(uint256 => bool) public vetoed;
+
 	/// @notice Initializes the OpenQuestion contract
 	/// @dev Sets up the question details and minimum points required to add an option
 	/// @param _space The address of the Space contract
@@ -26,13 +29,11 @@ contract OpenQuestion is Question, IOpenQuestion {
 		string[] memory _tags,
 		uint256 _deadline,
 		address _plasa
-	) Question(_space, _points, _title, _description, _deadline, _tags, _plasa) {
+	)
+		Question(_space, _points, _title, _description, _deadline, _tags, _plasa)
+		onlyAllowed(ISpaceAccessControl.PermissionName.CreateOpenQuestion)
+	{
 		questionType = QuestionType.Open;
-
-		// Check if creator has permission to create open questions
-		if (!space.hasPermission(ISpaceAccessControl.PermissionName.CreateOpenQuestion, msg.sender)) {
-			revert NotAllowed(msg.sender, ISpaceAccessControl.PermissionName.CreateOpenQuestion);
-		}
 	}
 
 	/// @inheritdoc IOpenQuestion
@@ -40,19 +41,50 @@ contract OpenQuestion is Question, IOpenQuestion {
 		string memory _title,
 		string memory _description
 	) external whileActive returns (uint256 optionId) {
-		if (!space.canAddOpenQuestionOption(msg.sender)) {
-			revert InsufficientPoints();
-		}
+		if (!space.canAddOpenQuestionOption(msg.sender)) revert InsufficientPoints();
+
 		optionId = _addOption(_title, _description);
+	}
+
+	/// @inheritdoc IOpenQuestion
+	function vetoOption(
+		uint256 optionId
+	)
+		external
+		whileActive
+		validOption(optionId)
+		onlyAllowed(ISpaceAccessControl.PermissionName.VetoOpenQuestionOption)
+	{
+		vetoed[optionId] = true;
+
+		emit OptionVetoed(msg.sender, optionId);
+	}
+
+	/// @inheritdoc IOpenQuestion
+	function liftOptionVeto(
+		uint256 optionId
+	)
+		external
+		whileActive
+		validOption(optionId)
+		onlyAllowed(ISpaceAccessControl.PermissionName.LiftVetoOpenQuestionOption)
+	{
+		vetoed[optionId] = false;
+
+		emit OptionVetoLifted(msg.sender, optionId);
+	}
+
+	/// @inheritdoc Question
+	function _isVetoed(uint256 optionId) internal view override returns (bool) {
+		return vetoed[optionId];
 	}
 
 	/// @notice Processes a vote for a specific option
 	/// @dev Overrides the base _processVote function to check for duplicate votes
 	/// @param optionId The ID of the option being voted for
 	function _processVote(uint256 optionId) internal override {
-		if (userVotes[msg.sender][optionId]) {
-			revert UserAlreadyVotedThisOption(msg.sender, optionId);
-		}
+		if (userVotes[msg.sender][optionId]) revert UserAlreadyVotedOption(msg.sender, optionId);
+
 		userVotes[msg.sender][optionId] = true;
 	}
 

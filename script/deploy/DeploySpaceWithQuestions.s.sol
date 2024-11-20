@@ -70,6 +70,10 @@ contract DeploySpaceWithQuestions is Script {
 			args.minPointsToAddOpenQuestionOption
 		);
 
+		vm.stopBroadcast();
+
+		vm.startBroadcast(superAdminPrivateKey);
+
 		// Deploy Fixed Questions
 		FixedQuestion fixedQuestion1 = deployFixedQuestion(
 			address(space),
@@ -97,10 +101,6 @@ contract DeploySpaceWithQuestions is Script {
 			args.openQuestion2,
 			args.plasaAddress
 		);
-
-		vm.stopBroadcast();
-
-		vm.startBroadcast(deployerPrivateKey);
 
 		// Add questions to space
 		space.addQuestion(address(fixedQuestion1));

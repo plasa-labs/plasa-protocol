@@ -90,10 +90,12 @@ contract DeploySingle is Script {
 		// Deploy Questions
 		FixedQuestion question1 = deployQuestion(address(space), address(0), args.question1, address(plasa));
 		FixedQuestion question2 = deployQuestion(address(space), address(0), args.question2, address(plasa));
+		FixedQuestion question3 = deployQuestion(address(space), address(0), args.question3, address(plasa));
 
 		// Add questions to space
 		space.addQuestion(address(question1));
 		space.addQuestion(address(question2));
+		space.addQuestion(address(question3));
 
 		vm.stopBroadcast();
 
@@ -105,5 +107,6 @@ contract DeploySingle is Script {
 		}
 		console.log("Question 1 deployed at:", address(question1));
 		console.log("Question 2 deployed at:", address(question2));
+		console.log("Question 3 deployed at:", address(question3));
 	}
 }

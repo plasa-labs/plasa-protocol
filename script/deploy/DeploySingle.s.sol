@@ -58,7 +58,8 @@ contract DeploySingle is Script {
 			stamps[i] = new FollowerSinceStamp(
 				args.common.stampSigner,
 				args.space.stampPlatforms[i],
-				args.space.stampFollowed[i]
+				args.space.stampFollowed[i],
+				superAdmin
 			);
 			stampAddresses[i] = address(stamps[i]);
 		}

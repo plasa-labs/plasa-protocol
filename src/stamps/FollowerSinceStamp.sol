@@ -24,14 +24,16 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	constructor(
 		address _signer,
 		string memory _platform,
-		string memory _followed
+		string memory _followed,
+		address _minter
 	)
 		Stamp(
 			IStampView.StampType.FollowerSince,
 			string.concat(_followed, " ", _platform, " Follower"),
 			"FOLLOW",
 			"0.1.0",
-			_signer
+			_signer,
+			_minter
 		)
 	{
 		PLATFORM = _platform;
@@ -39,28 +41,40 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 	}
 
 	/// @inheritdoc IFollowerSinceStamp
-	function mintStamp(uint256 since, uint256 deadline, bytes calldata signature) external override returns (uint256) {
+	function mintWithSignature(
+		uint256 since,
+		uint256 deadline,
+		bytes calldata signature
+	) external override returns (uint256) {
 		if (msg.sender == address(0)) revert InvalidRecipient();
 
 		bytes memory encodedData = abi.encode(PLATFORM, FOLLOWED, since, msg.sender, deadline);
 
-		uint256 stampId = _mintStamp(msg.sender, encodedData, signature, deadline);
+		uint256 stampId = _mintWithSignature(msg.sender, encodedData, signature, deadline);
 
-		// Store the "since" timestamp for the stamp
-		followStartTimestamp[stampId] = since;
-
-		emit FollowerSince(PLATFORM, FOLLOWED, since, stampId, msg.sender);
+		_processMint(stampId, msg.sender, since);
 
 		return stampId;
 	}
 
+	function mintByMinter(address user, uint256 since) external returns (uint256) {
+		uint256 stampId = _mintByMinter(user);
+
+		_processMint(stampId, user, since);
+
+		return stampId;
+	}
+
+	function _processMint(uint256 stampId, address user, uint256 since) private {
+		followStartTimestamp[stampId] = since;
+
+		emit FollowerSince(PLATFORM, FOLLOWED, since, stampId, user);
+	}
+
 	/// @inheritdoc IFollowerSinceStamp
 	function getFollowerSinceTimestamp(address user) public view override returns (uint256) {
-		try this.tokenOfOwnerByIndex(user, 0) returns (uint256 stampId) {
-			return followStartTimestamp[stampId];
-		} catch {
-			return 0;
-		}
+		if (balanceOf(user) == 0) return 0;
+		return followStartTimestamp[tokenOfOwnerByIndex(user, 0)];
 	}
 
 	function _specificData() internal view override returns (bytes memory) {

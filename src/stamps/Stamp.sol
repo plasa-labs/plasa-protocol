@@ -26,6 +26,9 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @notice The address of the space this stamp is associated with
 	ISpace public space;
 
+	/// @notice The address authorized to mint stamps
+	address public minter;
+
 	/// @notice Initializes the Stamp contract
 	/// @dev Sets up the ERC721 token, EIP712 domain separator, and stamp-specific properties
 	/// @param _stampType The type of stamp
@@ -38,10 +41,12 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 		string memory stampName,
 		string memory stampSymbol,
 		string memory eip712version,
-		address _signer
+		address _signer,
+		address _minter
 	) ERC721(stampName, stampSymbol) EIP712("Plasa Stamps", eip712version) {
 		signer = _signer;
 		stampType = _stampType;
+		minter = _minter;
 	}
 
 	/// @notice Computes the typed data hash for signature verification
@@ -57,7 +62,7 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @param signature Signature authorizing the mint
 	/// @param deadline Timestamp after which the signature is no longer valid
 	/// @return uint256 The ID of the newly minted stamp
-	function _mintStamp(
+	function _mintWithSignature(
 		address to,
 		bytes memory data,
 		bytes calldata signature,
@@ -79,6 +84,25 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 		}
 
 		// Mint the new stamp
+		return _mint(to);
+	}
+
+	/// @notice Internal function to mint a new stamp by the minter
+	/// @dev Checks if the sender is the minter, then mints the stamp
+	/// @param to Address to mint the stamp to
+	/// @return uint256 The ID of the newly minted stamp
+	function _mintByMinter(address to) internal virtual returns (uint256) {
+		if (msg.sender != minter) revert InvalidMinter();
+
+		// Mint the new stamp
+		return _mint(to);
+	}
+
+	/// @notice Internal function to mint a new stamp
+	/// @dev Mints the stamp and sets the minting timestamp
+	/// @param to Address to mint the stamp to
+	/// @return uint256 The ID of the newly minted stamp
+	function _mint(address to) private returns (uint256) {
 		uint256 newStampId = totalSupply() + 1;
 		_safeMint(to, newStampId);
 		mintingTimestamps[newStampId] = block.timestamp;

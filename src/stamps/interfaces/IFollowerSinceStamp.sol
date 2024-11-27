@@ -37,7 +37,13 @@ interface IFollowerSinceStamp is IStamp {
 	/// @param deadline The deadline for the signature to be valid
 	/// @param signature The signature authorizing the mint
 	/// @return The ID of the minted stamp
-	function mintStamp(uint256 since, uint256 deadline, bytes calldata signature) external returns (uint256);
+	function mintWithSignature(uint256 since, uint256 deadline, bytes calldata signature) external returns (uint256);
+
+	/// @notice Mints a new follower since stamp by the minter
+	/// @param user The address of the follower
+	/// @param since The timestamp when the following relationship started
+	/// @return The ID of the minted stamp
+	function mintByMinter(address user, uint256 since) external returns (uint256);
 
 	/// @notice Retrieves the follower since timestamp for a given address
 	/// @param user The address of the follower

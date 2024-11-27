@@ -28,6 +28,9 @@ interface IStamp is IERC721Enumerable, IStampView {
 	/// @param tokenId The ID of the non-existent token
 	error TokenDoesNotExist(uint256 tokenId);
 
+	/// @notice Thrown when an invalid minter address is provided
+	error InvalidMinter();
+
 	/// @notice Returns the address of the signer authorized to sign minting requests
 	/// @return The address of the authorized signer
 	/// @dev This function should be implemented to return the current authorized signer's address

@@ -21,6 +21,7 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 	/// @param _platform The platform name for this stamp
 	constructor(
 		address _signer,
+		address _minter,
 		string memory _platform
 	)
 		Stamp(
@@ -28,7 +29,8 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 			string.concat(_platform, " Account Owner"),
 			"OWNER",
 			"0.1.0",
-			_signer
+			_signer,
+			_minter
 		)
 	{
 		PLATFORM = _platform;
@@ -50,7 +52,7 @@ contract AccountOwnershipStamp is Stamp, IAccountOwnershipStamp {
 
 		bytes memory encodedData = abi.encode(PLATFORM, username, msg.sender, deadline);
 
-		uint256 tokenId = _mintStamp(msg.sender, encodedData, signature, deadline);
+		uint256 tokenId = _mintWithSignature(msg.sender, encodedData, signature, deadline);
 
 		// _usedUsernames[username] = tokenId;
 		// _tokenUsernames[tokenId] = username;

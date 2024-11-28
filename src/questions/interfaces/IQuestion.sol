@@ -27,6 +27,10 @@ interface IQuestion is IQuestionView {
 	/// @param newTags The updated tags for the question
 	event QuestionTagsUpdated(string[] newTags);
 
+	/// @dev Emitted when a question's points are updated
+	/// @param newPoints The updated points for the question
+	event QuestionPointsUpdated(address newPoints);
+
 	/// @dev Emitted when a vote is cast
 	/// @param voter The address of the voter
 	/// @param name The username of the voter
@@ -87,6 +91,15 @@ interface IQuestion is IQuestionView {
 	/// @dev Only callable by authorized roles (e.g., admin)
 	/// @param _deadline The new deadline timestamp to set
 	function updateDeadline(uint256 _deadline) external;
+
+	/// @notice Updates the points contract for the question
+	/// @dev Only callable by authorized roles (e.g., admin)
+	/// @param _points The new address of the points contract
+	function updatePoints(address _points) external;
+
+	/// @notice Updates the space of the question - ONLY FOR ALPHA AND BETA
+	/// @param _space The new address of the space
+	function updateSpace(address _space) external;
 
 	/// @notice Retrieves all available voting options for the question
 	/// @return An array of OptionData structs representing all voting options

@@ -130,13 +130,25 @@ abstract contract Question is IQuestion, PlasaContext {
 		emit QuestionDeadlineUpdated(_deadline);
 	}
 
-	/// @notice Updates the tags of the question
-	/// @param _tags The new array of tags
+	/// @inheritdoc IQuestion
+	function updatePoints(
+		address _points
+	) external onlyAllowed(ISpaceAccessControl.PermissionName.UpdateQuestionPoints) {
+		points = IPoints(_points);
+		emit QuestionPointsUpdated(_points);
+	}
+
+	/// @inheritdoc IQuestion
 	function updateTags(
 		string[] memory _tags
 	) external onlyAllowed(ISpaceAccessControl.PermissionName.UpdateQuestionInfo) {
 		tags = _tags;
 		emit QuestionTagsUpdated(_tags);
+	}
+
+	/// @inheritdoc IQuestion
+	function updateSpace(address _space) external onlyAllowed(ISpaceAccessControl.PermissionName.UpdateQuestionPoints) {
+		space = ISpace(_space);
 	}
 
 	/// @inheritdoc IQuestion

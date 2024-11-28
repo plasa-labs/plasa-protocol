@@ -57,6 +57,7 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		return stampId;
 	}
 
+	/// @inheritdoc IFollowerSinceStamp
 	function mintByMinter(address user, uint256 since) external returns (uint256) {
 		uint256 stampId = _mintByMinter(user);
 
@@ -65,6 +66,10 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		return stampId;
 	}
 
+	/// @dev Internal function to process the minting of a follower since stamp
+	/// @param stampId The ID of the minted stamp
+	/// @param user The address of the follower
+	/// @param since The timestamp when the following relationship started
 	function _processMint(uint256 stampId, address user, uint256 since) private {
 		followStartTimestamp[stampId] = since;
 
@@ -77,10 +82,12 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		return followStartTimestamp[tokenOfOwnerByIndex(user, 0)];
 	}
 
+	/// @inheritdoc Stamp
 	function _specificData() internal view override returns (bytes memory) {
 		return abi.encode(PLATFORM, FOLLOWED);
 	}
 
+	/// @inheritdoc Stamp
 	function _specificUser(address user) internal view override returns (bytes memory) {
 		return bytes(abi.encode(getFollowerSinceTimestamp(user)));
 	}

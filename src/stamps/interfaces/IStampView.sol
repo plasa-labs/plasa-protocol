@@ -30,6 +30,7 @@ interface IStampView {
 		bool owns; /// @dev Whether the user owns this stamp
 		uint256 stampId; /// @dev Unique identifier of the stamp for this user
 		uint256 mintingTimestamp; /// @dev Timestamp when the stamp was minted for this user
+		uint256 currentValue; /// @dev The value of the stamp for this user
 		bytes specific; /// @dev Additional data specific to the stamp type
 	}
 

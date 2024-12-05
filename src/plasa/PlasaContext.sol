@@ -51,4 +51,8 @@ abstract contract PlasaContext is IPlasaContext {
 	function _getUsername(address user) internal view returns (string memory) {
 		return plasa.getUsername(user);
 	}
+
+	function _getUsers() internal view returns (address[] memory) {
+		return plasa.getAllUsers();
+	}
 }

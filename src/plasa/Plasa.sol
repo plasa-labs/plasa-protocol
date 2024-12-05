@@ -85,6 +85,10 @@ contract Plasa is Ownable, IPlasa {
 		return usernameData;
 	}
 
+	function getAllUsers() public view returns (address[] memory) {
+		return names.getAllHolders();
+	}
+
 	/// @inheritdoc IPlasaView
 	function getPlasaView(address user) external view returns (PlasaView memory) {
 		return

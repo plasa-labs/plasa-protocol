@@ -42,4 +42,8 @@ interface IPlasa is IPlasaView {
 	/// @param users The addresses of the users whose usernames are to be retrieved.
 	/// @return UsernameData[] memory An array of UsernameData structures corresponding to the input addresses.
 	function getUsernamesData(address[] memory users) external view returns (UsernameData[] memory);
+
+	/// @notice Retrieves all registered users.
+	/// @return address[] memory An array of addresses corresponding to all registered users.
+	function getAllUsers() external view returns (address[] memory);
 }

@@ -122,4 +122,23 @@ contract Names is ERC721Enumerable, INames, Ownable {
 	function hasName(address user) public view returns (bool) {
 		return balanceOf(user) != 0;
 	}
+
+	/// @inheritdoc INames
+	function getAllHolders() public view returns (address[] memory holders) {
+		uint256 totalSupply = totalSupply();
+		holders = new address[](totalSupply);
+
+		for (uint256 i = 0; i < totalSupply; ) {
+			// Get token ID by index
+			uint256 tokenId = tokenByIndex(i);
+			// Get owner of token
+			holders[i] = ownerOf(tokenId);
+
+			unchecked {
+				++i;
+			}
+		}
+
+		return holders;
+	}
 }

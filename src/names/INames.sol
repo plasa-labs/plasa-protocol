@@ -91,4 +91,8 @@ interface INames is IERC721Enumerable {
 	/// @notice Updates the token-level metadata URI
 	/// @param _newURI New URI string for token metadata
 	function updateTokenURI(string memory _newURI) external;
+
+	/// @notice Returns all current holders of name tokens
+	/// @return holders Array of addresses that own name tokens
+	function getAllHolders() external view returns (address[] memory holders);
 }

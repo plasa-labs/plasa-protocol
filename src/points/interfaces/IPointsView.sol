@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import { IStampView } from "../../stamps/interfaces/IStampView.sol";
+
 /// @title IPointsView - View interface for a non-transferable ERC20-like token system
 /// @notice This interface defines the read-only functions for querying the state of a non-transferable token system
 /// @dev Implement this interface for contracts that need to provide a view into the Points system
@@ -32,6 +34,12 @@ interface IPointsView {
 	struct PointsView {
 		PointsData data; /// @notice General data about the Points system
 		PointsUser user; /// @notice User-specific data
+		PointsStamp[] stamps; /// @notice Array of PointsStamp structs for each registered stamp
+	}
+
+	struct PointsStamp {
+		IStampView.StampView stamp;
+		uint256 multiplier;
 	}
 
 	/// @notice Retrieves a comprehensive view of the Points system and a specific user's data

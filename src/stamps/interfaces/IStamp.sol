@@ -45,6 +45,37 @@ interface IStamp is IERC721Enumerable, IStampView {
 	/// @return The type of stamp
 	function stampType() external view returns (IStampView.StampType);
 
+	/// @notice Retrieves the current value of a specific stamp
+	/// @param stampId The ID of the stamp to query
+	/// @return The current value of the stamp
+	function currentStampValue(uint256 stampId) external view returns (uint256);
+
+	/// @notice Retrieves the current value of a specific user's stamp
+	/// @param user The address of the user to query
+	/// @return The current value of the user's stamp
+	function currentUserValue(address user) external view returns (uint256);
+
+	/// @notice Retrieves the value of a specific stamp at a given timestamp
+	/// @param stampId The ID of the stamp to query
+	/// @param timestamp The timestamp to query
+	/// @return The value of the stamp at the given timestamp
+	function stampValueAtTimestamp(uint256 stampId, uint256 timestamp) external view returns (uint256);
+
+	/// @notice Retrieves the value of a specific user's stamp at a given timestamp
+	/// @param user The address of the user to query
+	/// @param timestamp The timestamp to query
+	/// @return The value of the user's stamp at the given timestamp
+	function userValueAtTimestamp(address user, uint256 timestamp) external view returns (uint256);
+
+	/// @notice Retrieves the total value of all stamps at a given timestamp
+	/// @param timestamp The timestamp to query
+	/// @return The total value of all stamps at the given timestamp
+	function totalValueAtTimestamp(uint256 timestamp) external view returns (uint256);
+
+	/// @notice Retrieves the current total value of all stamps
+	/// @return The current total value of all stamps
+	function currentTotalValue() external view returns (uint256);
+
 	// The following functions are inherited from IERC721Enumerable:
 
 	/// @notice Returns the token ID at a given index of the tokens list of the requested owner

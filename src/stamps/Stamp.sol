@@ -6,7 +6,8 @@ import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { IStamp } from "./interfaces/IStamp.sol";
 import { IStampView } from "./interfaces/IStampView.sol";
-import { ISpace } from "../spaces/interfaces/ISpace.sol";
+
+// import { ISpace } from "../spaces/interfaces/ISpace.sol";
 
 /// @title Stamp - Non-transferable ERC721 tokens with signature-based minting
 /// @notice This contract implements non-transferable ERC721 tokens called "Stamps" with signature-based minting
@@ -23,8 +24,8 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @inheritdoc IStamp
 	IStampView.StampType public stampType;
 
-	/// @notice The address of the space this stamp is associated with
-	ISpace public space;
+	// /// @notice The address of the space this stamp is associated with
+	// ISpace public space;
 
 	/// @notice The address authorized to mint stamps
 	address public minter;
@@ -119,9 +120,55 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 		return signer == _hashTypedDataV4(_getTypedDataHash(data)).recover(signature);
 	}
 
+	function _stampValueAtTimestamp(uint256 stampId, uint256 timestamp) internal view virtual returns (uint256);
+
+	function stampValueAtTimestamp(uint256 stampId, uint256 timestamp) public view returns (uint256) {
+		_requireOwned(stampId);
+		return _stampValueAtTimestamp(stampId, timestamp);
+	}
+
+	function userValueAtTimestamp(address user, uint256 timestamp) public view returns (uint256) {
+		if (balanceOf(user) == 0) return 0;
+		uint256 _stampId = tokenOfOwnerByIndex(user, 0);
+		return _stampValueAtTimestamp(_stampId, timestamp);
+	}
+
+	/// @inheritdoc IStamp
+	function currentStampValue(uint256 stampId) external view returns (uint256) {
+		return stampValueAtTimestamp(stampId, block.timestamp);
+	}
+
+	/// @inheritdoc IStamp
+	function currentUserValue(address user) external view returns (uint256) {
+		return userValueAtTimestamp(user, block.timestamp);
+	}
+
+	/// @inheritdoc IStamp
+	function currentTotalValue() external view returns (uint256) {
+		return totalValueAtTimestamp(block.timestamp);
+	}
+
+	function totalValueAtTimestamp(uint256 timestamp) public view returns (uint256) {
+		uint256 totalValue;
+		uint256 supply = totalSupply();
+
+		for (uint256 i = 1; i <= supply; ) {
+			totalValue += stampValueAtTimestamp(i, timestamp);
+
+			unchecked {
+				++i;
+			}
+		}
+		return totalValue;
+	}
+
 	function _specificData() internal view virtual returns (bytes memory);
 
 	function _specificUser(address user) internal view virtual returns (bytes memory);
+
+	function _stampData() private view returns (IStampView.StampData memory) {
+		return IStampView.StampData(address(this), stampType, name(), symbol(), totalSupply(), _specificData());
+	}
 
 	/// @notice Returns the user's stamp data
 	/// @dev This function is used to get the user's stamp data
@@ -129,14 +176,17 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 	/// @return IStampView.StampUser memory The user's stamp data
 	function _stampUser(address user) private view returns (IStampView.StampUser memory) {
 		if (balanceOf(user) == 0) {
-			return IStampView.StampUser(false, 0, 0, bytes(""));
+			return IStampView.StampUser(false, 0, 0, 0, bytes(""));
 		}
 		uint256 tokenId = tokenOfOwnerByIndex(user, 0);
-		return IStampView.StampUser(true, tokenId, mintingTimestamps[tokenId], _specificUser(user));
-	}
-
-	function _stampData() private view returns (IStampView.StampData memory) {
-		return IStampView.StampData(address(this), stampType, name(), symbol(), totalSupply(), _specificData());
+		return
+			IStampView.StampUser(
+				true,
+				tokenId,
+				mintingTimestamps[tokenId],
+				_stampValueAtTimestamp(tokenId, block.timestamp),
+				_specificUser(user)
+			);
 	}
 
 	/// @inheritdoc IStampView
@@ -144,9 +194,9 @@ abstract contract Stamp is ERC721Enumerable, EIP712, IStamp {
 		return IStampView.StampView(_stampData(), _stampUser(user));
 	}
 
-	// ============================
+	// ==============================
 	// Overrides to Disable Transfers
-	// ============================
+	// ==============================
 
 	/// @notice Disable approvals
 	/// @dev Overrides OpenZeppelin's _approve function to prevent token approvals

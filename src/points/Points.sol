@@ -2,104 +2,134 @@
 pragma solidity ^0.8.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IPoints, IERC20Metadata, IERC20 } from "./interfaces/IPoints.sol";
+import { IPoints, IERC20Metadata } from "./interfaces/IPoints.sol";
 import { IPointsView } from "./interfaces/IPointsView.sol";
 import { PlasaContext } from "../plasa/PlasaContext.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { IStamp } from "../stamps/interfaces/IStamp.sol";
 
 /// @title Points - A non-transferable ERC20-like token contract
 /// @notice This contract implements a non-transferable token system
 /// @dev This is an abstract contract that needs to be inherited and implemented
-abstract contract Points is IPoints, PlasaContext {
+contract Points is IPoints, PlasaContext {
 	using Math for uint256;
 
 	string private _name;
 	string private _symbol;
-	uint8 private _decimals;
 
-	/// @notice Initializes the contract with a name, symbol, and decimals
+	// Add storage for stamps and their multipliers
+	StampInfo[] private _stamps;
+
+	/// @notice Initializes the contract with a name and symbol
 	/// @param tokenName The name of the token
 	/// @param tokenSymbol The symbol of the token
-	/// @param tokenDecimals The number of decimals for the token
 	constructor(
 		string memory tokenName,
 		string memory tokenSymbol,
-		uint8 tokenDecimals,
+		address[] memory stampAddresses,
+		uint256[] memory multipliers,
 		address _plasaContract
 	) PlasaContext(_plasaContract) {
 		_name = tokenName;
 		_symbol = tokenSymbol;
-		_decimals = tokenDecimals;
+
+		if (stampAddresses.length != multipliers.length) revert ArrayLengthMismatch();
+
+		for (uint256 i; i < stampAddresses.length; ) {
+			_addStamp(IStamp(stampAddresses[i]), multipliers[i]);
+
+			unchecked {
+				++i;
+			}
+		}
 	}
 
-	/// @dev Internal function to calculate balance at a specific timestamp
-	/// @param user The address of the user
-	/// @param timestamp The timestamp at which to check the balance
-	/// @return The balance of the user at the given timestamp
-	function _balanceAtTimestamp(address user, uint256 timestamp) internal view virtual returns (uint256);
-
 	/// @inheritdoc IPoints
-	function balanceAtTimestamp(address user, uint256 timestamp) public view virtual override returns (uint256) {
-		return _balanceAtTimestamp(user, timestamp);
+	function balanceAtTimestamp(address user, uint256 timestamp) public view virtual returns (uint256) {
+		uint256 totalPoints;
+
+		for (uint256 i; i < _stamps.length; ) {
+			// Get the stamp value for the user at the given timestamp
+			uint256 stampValue = _stamps[i].stamp.userValueAtTimestamp(user, timestamp);
+
+			// If the user has a non-zero stamp value, multiply it by the stamp's multiplier
+			if (stampValue != 0) {
+				unchecked {
+					// Overflow is unlikely as stamp values and multipliers are controlled by admin
+					totalPoints += stampValue * _stamps[i].multiplier;
+				}
+			}
+
+			unchecked {
+				++i;
+			}
+		}
+
+		return totalPoints;
 	}
 
 	/// @inheritdoc IERC20
-	function balanceOf(address user) public view virtual override returns (uint256) {
-		return _balanceAtTimestamp(user, block.timestamp);
+	function balanceOf(address user) public view override returns (uint256) {
+		return balanceAtTimestamp(user, block.timestamp);
 	}
 
-	/// @dev Internal function to calculate total supply at a specific timestamp
-	/// @param timestamp The timestamp at which to check the total supply
-	/// @return The total supply at the given timestamp
-	function _totalSupplyAtTimestamp(uint256 timestamp) internal view virtual returns (uint256);
-
 	/// @inheritdoc IPoints
-	function totalSupplyAtTimestamp(uint256 timestamp) public view virtual override returns (uint256) {
-		return _totalSupplyAtTimestamp(timestamp);
+	function totalSupplyAtTimestamp(uint256 timestamp) public view override returns (uint256) {
+		uint256 totalPoints;
+
+		for (uint256 i; i < _stamps.length; ) {
+			totalPoints += _stamps[i].stamp.totalValueAtTimestamp(timestamp);
+
+			unchecked {
+				++i;
+			}
+		}
+
+		return totalPoints;
 	}
 
 	/// @inheritdoc IERC20
-	function totalSupply() public view virtual override returns (uint256) {
+	function totalSupply() public view returns (uint256) {
 		return totalSupplyAtTimestamp(block.timestamp);
 	}
 
 	/// @inheritdoc IERC20
-	function transfer(address, uint256) public pure virtual override returns (bool) {
+	function transfer(address, uint256) public pure override returns (bool) {
 		revert NonTransferable();
 	}
 
 	/// @inheritdoc IERC20
-	function allowance(address, address) public view virtual override returns (uint256) {
+	function allowance(address, address) public view override returns (uint256) {
 		return 0;
 	}
 
 	/// @inheritdoc IERC20
-	function approve(address, uint256) public pure virtual override returns (bool) {
+	function approve(address, uint256) public pure override returns (bool) {
 		revert NonTransferable();
 	}
 
 	/// @inheritdoc IERC20
-	function transferFrom(address, address, uint256) public pure virtual override returns (bool) {
+	function transferFrom(address, address, uint256) public pure override returns (bool) {
 		revert NonTransferable();
 	}
 
 	/// @inheritdoc IERC20Metadata
-	function name() public view virtual override returns (string memory) {
+	function name() public view override returns (string memory) {
 		return _name;
 	}
 
 	/// @inheritdoc IERC20Metadata
-	function symbol() public view virtual override returns (string memory) {
+	function symbol() public view override returns (string memory) {
 		return _symbol;
 	}
 
 	/// @inheritdoc IERC20Metadata
-	function decimals() public view virtual override returns (uint8) {
-		return _decimals;
+	function decimals() public pure override returns (uint8) {
+		return 18;
 	}
 
 	/// @inheritdoc IPointsView
-	function getPointsView(address user) public view virtual override returns (PointsView memory) {
+	function getPointsView(address user) public view override returns (PointsView memory) {
 		return
 			PointsView({
 				data: PointsData({
@@ -109,7 +139,8 @@ abstract contract Points is IPoints, PlasaContext {
 					totalSupply: totalSupply(),
 					top10Holders: getTopHolders(0, 10)
 				}),
-				user: PointsUser({ currentBalance: balanceOf(user) })
+				user: PointsUser({ currentBalance: balanceOf(user) }),
+				stamps: _getPointsStampViews(user)
 			});
 	}
 
@@ -117,111 +148,61 @@ abstract contract Points is IPoints, PlasaContext {
 	function getTopHolders(uint256 start, uint256 end) public view override(IPoints) returns (HolderData[] memory) {
 		if (start >= end) revert IndexOutOfBounds();
 
-		uint256 maxSize = _getTotalUniqueHolders();
-		if (maxSize == 0) return new HolderData[](0);
+		// Get all users from PlasaContext
+		address[] memory users = _getUsers();
+		uint256 usersLength = users.length;
 
-		// Only allocate memory for the requested range
-		uint256 requestedSize = end - start;
-		Holder[] memory topHolders = new Holder[](requestedSize);
-		uint256 actualSize = _collectTopHolders(topHolders, start, end);
+		// Return empty array if no users
+		if (usersLength == 0) return new HolderData[](0);
 
-		if (actualSize == 0) return new HolderData[](0);
+		// Create temporary array to store holders with non-zero balances
+		Holder[] memory holders = new Holder[](usersLength);
+		uint256 totalHolders;
 
-		return _addUsernames(topHolders);
-	}
+		// Collect users with non-zero balances
+		for (uint256 i; i < usersLength; ) {
+			uint256 balance = balanceOf(users[i]);
+			if (balance > 0) {
+				holders[totalHolders] = Holder({ user: users[i], balance: balance });
+				unchecked {
+					++totalHolders;
+				}
+			}
+			unchecked {
+				++i;
+			}
+		}
 
-	/// @notice Returns the total number of unique holders
-	/// @return The total number of unique holders
-	function _getTotalUniqueHolders() internal view virtual returns (uint256);
+		// Return empty array if no holders with balance
+		if (totalHolders == 0) return new HolderData[](0);
 
-	/// @dev Helper function to collect holders and their balances
-	function _collectHolders(Holder[] memory holders) internal view virtual returns (uint256 totalHolders);
+		// Sort holders by balance (using quicksort)
+		_quickSort(holders, 0, totalHolders - 1);
 
-	/// @dev Helper function to paginate and sort holders
-	function _paginateAndSortHolders(
-		Holder[] memory holders,
-		uint256 totalHolders,
-		uint256 start,
-		uint256 end
-	) private pure returns (Holder[] memory) {
-		// Validate pagination
-		if (start >= totalHolders) return new Holder[](0);
+		// Calculate actual end index
 		end = Math.min(end, totalHolders);
 		uint256 length = end - start;
 
-		// Sort only the actual holders (not the entire array)
-		_insertionSort(holders, totalHolders);
+		// Create result array with usernames
+		HolderData[] memory result = new HolderData[](length);
 
-		// Return paginated result
-		Holder[] memory result = new Holder[](length);
+		if (length == 0) return result;
+
 		for (uint256 i; i < length; ) {
-			result[i] = holders[start + i];
+			Holder memory holder = holders[start + i];
+			result[i] = HolderData({ user: holder.user, name: _getUsername(holder.user), balance: holder.balance });
 			unchecked {
 				++i;
 			}
 		}
+
 		return result;
 	}
 
-	/// @dev Insertion sort implementation optimized for small arrays
-	function _insertionSort(Holder[] memory arr, uint256 length) private pure {
-		for (uint256 i = 1; i < length; ) {
-			uint256 j = i;
-			while (j > 0 && arr[j - 1].balance < arr[j].balance) {
-				(arr[j], arr[j - 1]) = (arr[j - 1], arr[j]);
-				unchecked {
-					--j;
-				}
-			}
-			unchecked {
-				++i;
-			}
-		}
-	}
-
-	/// @dev Helper function to add usernames to holder data
-	function _addUsernames(Holder[] memory holders) internal view virtual returns (HolderData[] memory) {
-		HolderData[] memory holderData = new HolderData[](holders.length);
-		for (uint256 i; i < holders.length; ) {
-			holderData[i] = HolderData({
-				user: holders[i].user,
-				name: _getUsername(holders[i].user),
-				balance: holders[i].balance
-			});
-			unchecked {
-				++i;
-			}
-		}
-		return holderData;
-	}
-
-	// New optimized collection function
-	function _collectTopHolders(Holder[] memory holders, uint256 start, uint256 end) internal view returns (uint256) {
-		// Get total holders
-		uint256 totalHolders = _collectHolders(holders);
-		if (totalHolders == 0) return 0;
-
-		// Sort holders by balance
-		_quickSort(holders, 0, totalHolders - 1);
-
-		// Return only the requested range
-		uint256 actualEnd = Math.min(end, totalHolders);
-		uint256 length = actualEnd - start;
-
-		// Shift the array to start from 0
-		if (start > 0 && start < totalHolders) {
-			for (uint256 i = 0; i < length; ) {
-				holders[i] = holders[i + start];
-				unchecked {
-					++i;
-				}
-			}
-		}
-
-		return length;
-	}
-
-	// Replace insertion sort with quicksort for better performance
+	/// @dev Quicksort implementation for sorting holders by balance
+	/// @param arr The array of holders to sort
+	/// @param left The left index of the array
+	/// @param right The right index of the array
 	function _quickSort(Holder[] memory arr, uint256 left, uint256 right) private pure {
 		if (left >= right) return;
 
@@ -242,5 +223,33 @@ abstract contract Points is IPoints, PlasaContext {
 
 		if (left < j) _quickSort(arr, left, j);
 		if (i < right) _quickSort(arr, i, right);
+	}
+
+	/// @notice Adds a new stamp with its multiplier
+	/// @dev This function should be called by authorized roles only
+	/// @param stamp The stamp contract address
+	/// @param multiplier The point multiplier for this stamp
+	function _addStamp(IStamp stamp, uint256 multiplier) internal {
+		_stamps.push(StampInfo({ stamp: stamp, multiplier: multiplier }));
+		emit StampAdded(address(stamp), multiplier);
+	}
+
+	/// @inheritdoc IPoints
+	function getStamps() public view override returns (StampInfo[] memory) {
+		return _stamps;
+	}
+
+	/// @dev Returns the stamp views for a given user
+	/// @param user The address of the user
+	/// @return An array of stamp views
+	function _getPointsStampViews(address user) internal view returns (PointsStamp[] memory) {
+		PointsStamp[] memory stamps = new PointsStamp[](_stamps.length);
+		for (uint256 i; i < _stamps.length; ) {
+			stamps[i] = PointsStamp({ stamp: _stamps[i].stamp.getStampView(user), multiplier: _stamps[i].multiplier });
+			unchecked {
+				++i;
+			}
+		}
+		return stamps;
 	}
 }

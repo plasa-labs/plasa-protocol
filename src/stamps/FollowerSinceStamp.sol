@@ -76,8 +76,12 @@ contract FollowerSinceStamp is Stamp, IFollowerSinceStamp {
 		emit FollowerSince(PLATFORM, FOLLOWED, since, stampId, user);
 	}
 
+	function _stampValueAtTimestamp(uint256 stampId, uint256 timestamp) internal view override returns (uint256) {
+		return timestamp - followStartTimestamp[stampId];
+	}
+
 	/// @inheritdoc IFollowerSinceStamp
-	function getFollowerSinceTimestamp(address user) public view override returns (uint256) {
+	function getFollowerSinceTimestamp(address user) public view returns (uint256) {
 		if (balanceOf(user) == 0) return 0;
 		return followStartTimestamp[tokenOfOwnerByIndex(user, 0)];
 	}

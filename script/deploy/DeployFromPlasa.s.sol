@@ -4,11 +4,15 @@ pragma solidity ^0.8.20;
 import { Script, console } from "forge-std/Script.sol";
 import { Space } from "../../src/spaces/Space.sol";
 import { DeployArgs } from "./DeployArgs.sol";
+import { FollowerSinceStamp } from "../../src/stamps/FollowerSinceStamp.sol";
+import { Points } from "../../src/points/Points.sol";
 import { FixedQuestion } from "../../src/questions/FixedQuestion.sol";
 import { OpenQuestion } from "../../src/questions/OpenQuestion.sol";
+import { Names } from "../../src/names/Names.sol";
+import { Plasa } from "../../src/plasa/Plasa.sol";
 
-contract DeploySpaceWithQuestions is Script {
-	function deployFixedQuestion(
+contract DeployFromPlasa is Script {
+	function deployQuestion(
 		address spaceAddress,
 		address pointsAddress,
 		DeployArgs.QuestionArgs memory args,
@@ -47,24 +51,46 @@ contract DeploySpaceWithQuestions is Script {
 	}
 
 	function run() public {
-		uint256 superAdminPrivateKey = vm.envUint("SUPER_ADMIN_PRIVATE_KEY");
-		address superAdmin = vm.addr(superAdminPrivateKey);
 		uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-		address deployer = vm.addr(deployerPrivateKey);
+		uint256 superAdminPrivateKey = vm.envUint("SUPER_ADMIN_PRIVATE_KEY");
 
-		address pointsAddress = vm.envAddress("POINTS_ADDRESS");
-		console.log("Points address:", pointsAddress);
+		address superAdmin = vm.addr(superAdminPrivateKey);
+		console.log("Deployer address:", vm.addr(deployerPrivateKey));
+		console.log("Super Admin address:", superAdmin);
 
 		address plasaAddress = vm.envAddress("PLASA_ADDRESS");
 		console.log("Plasa address:", plasaAddress);
-
-		console.log("Super Admin address:", superAdmin);
-		console.log("Deployer address:", deployer);
 
 		DeployArgs deployArgs = new DeployArgs();
 		DeployArgs.DeploymentArgs memory args = deployArgs.getArgs();
 
 		vm.startBroadcast(deployerPrivateKey);
+
+		// Deploy Plasa
+		Plasa plasa = Plasa(plasaAddress);
+
+		// Deploy Stamps
+		FollowerSinceStamp[] memory stamps = new FollowerSinceStamp[](args.space.stampPlatforms.length);
+		address[] memory stampAddresses = new address[](args.space.stampPlatforms.length);
+
+		for (uint256 i = 0; i < args.space.stampPlatforms.length; i++) {
+			stamps[i] = new FollowerSinceStamp(
+				args.common.stampSigner,
+				args.space.stampPlatforms[i],
+				args.space.stampFollowed[i],
+				superAdmin
+			);
+			stampAddresses[i] = address(stamps[i]);
+		}
+
+		// Deploy Points
+		Points points = new Points(
+			args.space.pointsName,
+			args.space.pointsSymbol,
+			stampAddresses,
+			args.space.stampMultipliers,
+			address(plasa)
+		);
 
 		// Deploy Space
 		Space space = new Space(
@@ -72,46 +98,47 @@ contract DeploySpaceWithQuestions is Script {
 			args.space.name,
 			args.space.description,
 			args.space.imageUrl,
-			pointsAddress,
+			address(points),
 			args.common.minPointsToAddOpenQuestionOption
 		);
 
 		vm.stopBroadcast();
 
+		// Switch to super admin for adding questions
 		vm.startBroadcast(superAdminPrivateKey);
 
-		// Deploy Fixed Questions
-		FixedQuestion fixedQuestion1 = deployFixedQuestion(
+		// Deploy Questions
+		FixedQuestion fixedQuestion1 = deployQuestion(
 			address(space),
-			pointsAddress,
+			address(points),
 			args.fixedQuestion1,
-			plasaAddress
+			address(plasa)
 		);
-		FixedQuestion fixedQuestion2 = deployFixedQuestion(
+		FixedQuestion fixedQuestion2 = deployQuestion(
 			address(space),
-			pointsAddress,
+			address(points),
 			args.fixedQuestion2,
-			plasaAddress
+			address(plasa)
 		);
-		FixedQuestion fixedQuestion3 = deployFixedQuestion(
+		FixedQuestion fixedQuestion3 = deployQuestion(
 			address(space),
-			pointsAddress,
+			address(points),
 			args.fixedQuestion3,
-			plasaAddress
+			address(plasa)
 		);
 
 		// Deploy Open Questions
 		OpenQuestion openQuestion1 = deployOpenQuestion(
 			address(space),
-			pointsAddress,
+			address(points),
 			args.openQuestion1,
-			plasaAddress
+			address(plasa)
 		);
 		OpenQuestion openQuestion2 = deployOpenQuestion(
 			address(space),
-			pointsAddress,
+			address(points),
 			args.openQuestion2,
-			plasaAddress
+			address(plasa)
 		);
 
 		// Add questions to space
@@ -125,6 +152,10 @@ contract DeploySpaceWithQuestions is Script {
 
 		// Log deployed contract addresses
 		console.log("Space deployed at:", address(space));
+		console.log("Points deployed at:", address(points));
+		for (uint256 i = 0; i < stamps.length; i++) {
+			console.log(string.concat("Stamp ", string(abi.encodePacked(i + 1)), " deployed at:"), address(stamps[i]));
+		}
 		console.log("Fixed Question 1 deployed at:", address(fixedQuestion1));
 		console.log("Fixed Question 2 deployed at:", address(fixedQuestion2));
 		console.log("Fixed Question 3 deployed at:", address(fixedQuestion3));

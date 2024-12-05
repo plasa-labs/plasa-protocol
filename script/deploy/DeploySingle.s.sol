@@ -3,10 +3,11 @@ pragma solidity ^0.8.20;
 
 import { Script, console } from "forge-std/Script.sol";
 import { Space } from "../../src/spaces/Space.sol";
-import { DeploySingleArgs } from "./DeploySingleArgs.sol";
+import { DeployArgs } from "./DeployArgs.sol";
 import { FollowerSinceStamp } from "../../src/stamps/FollowerSinceStamp.sol";
-import { MultipleFollowerSincePoints } from "../../src/points/MultipleFollowerSincePoints.sol";
+import { Points } from "../../src/points/Points.sol";
 import { FixedQuestion } from "../../src/questions/FixedQuestion.sol";
+import { OpenQuestion } from "../../src/questions/OpenQuestion.sol";
 import { Names } from "../../src/names/Names.sol";
 import { Plasa } from "../../src/plasa/Plasa.sol";
 
@@ -14,7 +15,7 @@ contract DeploySingle is Script {
 	function deployQuestion(
 		address spaceAddress,
 		address pointsAddress,
-		DeploySingleArgs.QuestionArgs memory args,
+		DeployArgs.QuestionArgs memory args,
 		address plasaAddress
 	) private returns (FixedQuestion) {
 		return
@@ -31,6 +32,24 @@ contract DeploySingle is Script {
 			);
 	}
 
+	function deployOpenQuestion(
+		address spaceAddress,
+		address pointsAddress,
+		DeployArgs.OpenQuestionArgs memory args,
+		address plasaAddress
+	) private returns (OpenQuestion) {
+		return
+			new OpenQuestion(
+				spaceAddress,
+				pointsAddress,
+				args.title,
+				args.description,
+				args.tags,
+				args.deadline,
+				plasaAddress
+			);
+	}
+
 	function run() public {
 		uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
 		uint256 superAdminPrivateKey = vm.envUint("SUPER_ADMIN_PRIVATE_KEY");
@@ -39,8 +58,8 @@ contract DeploySingle is Script {
 		console.log("Deployer address:", vm.addr(deployerPrivateKey));
 		console.log("Super Admin address:", superAdmin);
 
-		DeploySingleArgs deployArgs = new DeploySingleArgs();
-		DeploySingleArgs.DeploymentArgs memory args = deployArgs.getArgs();
+		DeployArgs deployArgs = new DeployArgs();
+		DeployArgs.DeploymentArgs memory args = deployArgs.getArgs();
 
 		vm.startBroadcast(deployerPrivateKey);
 
@@ -65,11 +84,11 @@ contract DeploySingle is Script {
 		}
 
 		// Deploy Points
-		MultipleFollowerSincePoints points = new MultipleFollowerSincePoints(
-			stampAddresses,
-			args.space.stampMultipliers,
+		Points points = new Points(
 			args.space.pointsName,
 			args.space.pointsSymbol,
+			stampAddresses,
+			args.space.stampMultipliers,
 			address(plasa)
 		);
 
@@ -89,14 +108,45 @@ contract DeploySingle is Script {
 		vm.startBroadcast(superAdminPrivateKey);
 
 		// Deploy Questions
-		FixedQuestion question1 = deployQuestion(address(space), address(0), args.question1, address(plasa));
-		FixedQuestion question2 = deployQuestion(address(space), address(0), args.question2, address(plasa));
-		FixedQuestion question3 = deployQuestion(address(space), address(0), args.question3, address(plasa));
+		FixedQuestion fixedQuestion1 = deployQuestion(
+			address(space),
+			address(points),
+			args.fixedQuestion1,
+			address(plasa)
+		);
+		FixedQuestion fixedQuestion2 = deployQuestion(
+			address(space),
+			address(points),
+			args.fixedQuestion2,
+			address(plasa)
+		);
+		FixedQuestion fixedQuestion3 = deployQuestion(
+			address(space),
+			address(points),
+			args.fixedQuestion3,
+			address(plasa)
+		);
+
+		// Deploy Open Questions
+		OpenQuestion openQuestion1 = deployOpenQuestion(
+			address(space),
+			address(points),
+			args.openQuestion1,
+			address(plasa)
+		);
+		OpenQuestion openQuestion2 = deployOpenQuestion(
+			address(space),
+			address(points),
+			args.openQuestion2,
+			address(plasa)
+		);
 
 		// Add questions to space
-		space.addQuestion(address(question1));
-		space.addQuestion(address(question2));
-		space.addQuestion(address(question3));
+		space.addQuestion(address(fixedQuestion1));
+		space.addQuestion(address(fixedQuestion2));
+		space.addQuestion(address(fixedQuestion3));
+		space.addQuestion(address(openQuestion1));
+		space.addQuestion(address(openQuestion2));
 
 		vm.stopBroadcast();
 
@@ -106,8 +156,10 @@ contract DeploySingle is Script {
 		for (uint256 i = 0; i < stamps.length; i++) {
 			console.log(string.concat("Stamp ", string(abi.encodePacked(i + 1)), " deployed at:"), address(stamps[i]));
 		}
-		console.log("Question 1 deployed at:", address(question1));
-		console.log("Question 2 deployed at:", address(question2));
-		console.log("Question 3 deployed at:", address(question3));
+		console.log("Fixed Question 1 deployed at:", address(fixedQuestion1));
+		console.log("Fixed Question 2 deployed at:", address(fixedQuestion2));
+		console.log("Fixed Question 3 deployed at:", address(fixedQuestion3));
+		console.log("Open Question 1 deployed at:", address(openQuestion1));
+		console.log("Open Question 2 deployed at:", address(openQuestion2));
 	}
 }
